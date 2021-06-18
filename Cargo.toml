@@ -1,0 +1,19 @@
+[package]
+name = "matrices"
+version = "0.1.0"
+authors = ["Jonas Wiebe <jnwiebe@web.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "matrices"
+path = "src/lib.rs"
+doc = true
+test = true
+edition = "2018"
+crate_type = ["lib"]
+
+[dependencies]
+num = "0.4.0"
+num-traits = "0.2.6"
