@@ -13,9 +13,9 @@ struct Dimensions {
 /// Generic struct Matrix stores the dimensions in `rows` and `cols` and every entry in `matrix`
 #[derive(Debug, PartialEq, Clone)]
 pub struct Matrix<T> {
-    pub rows: usize,
-    pub cols: usize,
-    pub matrix: Vec<T>,
+    rows: usize,
+    cols: usize,
+    matrix: Vec<T>,
 }
 
 impl<T> Matrix<T>
@@ -28,6 +28,18 @@ where
             rows,
             cols,
             matrix: vec![init; cols * rows],
+        }
+    }
+    /// Create a new matrix from a vec.
+    pub fn from_vec(rows: usize, cols: usize, vec: Vec<T>) -> Matrix<T> {
+        if vec.len() != rows * cols {
+            panic!("vec must have a length of rows * cols");
+        } else {
+            Matrix::<T> {
+                rows,
+                cols,
+                matrix: vec,
+            }
         }
     }
     /// Create an identity matrix of type `T` with dimensions `dim x dim`.
