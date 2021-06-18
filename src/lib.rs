@@ -2,7 +2,7 @@
 
 use num_traits::{cast, identities, sign};
 use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Sub};
 
 #[derive(Debug, PartialEq, Clone)]
 struct Dimensions {
@@ -238,5 +238,16 @@ where
             }
         }
         Ok(())
+    }
+}
+
+impl<T> Index<usize> for Matrix<T> {
+    type Output = [T];
+
+    fn index(&self, idx: usize) -> &Self::Output {
+        if idx >= self.rows {
+            panic!("Unreachable index: {}", idx);
+        }
+        &self.matrix[idx * self.cols..idx * self.cols + self.cols]
     }
 }
