@@ -1,6 +1,6 @@
 //! Simple implementation of matrices with matrix functions and arithmetic operations on matrices
 
-use num_traits::identities;
+use num_traits::{cast, identities, sign};
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -57,6 +57,79 @@ where
             res_mat.matrix[i] = init;
         }
         res_mat
+    }
+    fn lupdecompose(&self) -> Option<(Matrix<f64>, Vec<usize>)>
+    where
+        T: sign::Signed + PartialOrd + cast::ToPrimitive,
+    {
+        if self.rows != self.cols {
+            panic!("Matrix should be a square.")
+        }
+        let mut a = Matrix::zero(self.rows, self.cols);
+        a.matrix = self.matrix.iter().map(|&x| x.to_f64().unwrap()).collect();
+        let dim = self.rows;
+        let mut imax: usize;
+        let mut max_a: f64;
+        let mut p: Vec<usize> = (0..=dim).collect();
+
+        for i in 0..dim {
+            max_a = 0_f64;
+            imax = i;
+
+            for k in i..dim {
+                if a.matrix[i * dim + k].abs() > max_a {
+                    max_a = a.matrix[i * dim + k].abs();
+                    imax = k;
+                }
+            }
+
+            if max_a < 0.000001 {
+                return None;
+            }
+
+            if imax != i {
+                let j = p[i];
+                p[i] = p[imax];
+                p[imax] = j;
+
+                let mut t_ij: Matrix<f64> = Matrix::one(dim);
+                t_ij.matrix[i * dim + i] = 0_f64;
+                t_ij.matrix[imax * dim + imax] = 0_f64;
+                t_ij.matrix[i * dim + imax] = 1_f64;
+                t_ij.matrix[imax * dim + i] = 1_f64;
+                a = &a * &t_ij;
+
+                p[dim] += 1;
+            }
+
+            for j in (i + 1)..dim {
+                a.matrix[j * dim + i] = a.matrix[j * dim + i] / a.matrix[i * dim + i];
+                for k in (i + 1)..dim {
+                    a.matrix[j * dim + k] =
+                        a.matrix[j * dim + k] - (a.matrix[j * dim + i] * a.matrix[i * dim + k])
+                }
+            }
+        }
+        Some((a, p))
+    }
+    pub fn det(&self) -> f64
+    where
+        T: sign::Signed + PartialOrd + Display + cast::ToPrimitive,
+    {
+        if let Some((mat, p)) = self.lupdecompose() {
+            println!("{}", mat);
+            let mut det = mat.matrix[0];
+            for i in 1..mat.cols {
+                det = det * mat.matrix[i * mat.cols + i];
+            }
+            if (p[mat.rows] - mat.rows) % 2 == 0 {
+                det
+            } else {
+                -det
+            }
+        } else {
+            0_f64
+        }
     }
 }
 
