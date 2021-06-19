@@ -18,12 +18,19 @@ This library implements basic arithmetic operations on matrices. The operations 
 
 ### Matrix methods
 `new(rows, cols, init)`: Creates new matrix.
+
 `from_vec(rows, cols, vec)`: Creates new matrix.
+
 `one(dim)`: Creates a unit matrix.
+
 `zero(rows, cols)`: Creates a zero matrix.
+
 `diag(dim, init)`: Creates a diagonal matrix.
+
 `det()`: Calculates the determinant of a matrix.
+
 `transpose()`: Transposes a matrix.
+
 `is_square()`: Checks whether the matrix is a square or not.
 
 [rustdocs]: 
