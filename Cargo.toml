@@ -9,6 +9,9 @@ edition = "2018"
 [lib]
 name = "matrices"
 path = "src/lib.rs"
+repository = "https://github.com/wiebecommajonas/libmatrices"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 doc = true
 test = true
 edition = "2018"
