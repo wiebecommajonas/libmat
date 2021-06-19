@@ -262,35 +262,35 @@ where
     // / let mat_b = Matrix::<f64>::from_vec(2, 2, vec![-1.0, 0.0, 0.0, 1.0]);
     // / assert_eq!(mat_a.invert().unwrap(), mat_b);
     // / ```
-    pub fn invert(&self) -> Option<Matrix<f64>>
-    where
-        T: sign::Signed + PartialOrd + cast::ToPrimitive,
-    {
-        // if let Some((mat, p)) = self.lupdecompose() {
-        //     let dim = mat.dims.rows;
-        //     let mut mat_inv = Matrix::<f64>::zero(dim, dim);
-        //     for j in 0..dim {
-        //         for i in 0..dim {
-        //             mat_inv[i][j] = if p[i] == j { 1.0 } else { 0.0 };
+    // pub fn invert(&self) -> Option<Matrix<f64>>
+    // where
+    //     T: sign::Signed + PartialOrd + cast::ToPrimitive,
+    // {
+    //     // if let Some((mat, p)) = self.lupdecompose() {
+    //     //     let dim = mat.dims.rows;
+    //     //     let mut mat_inv = Matrix::<f64>::zero(dim, dim);
+    //     //     for j in 0..dim {
+    //     //         for i in 0..dim {
+    //     //             mat_inv[i][j] = if p[i] == j { 1.0 } else { 0.0 };
 
-        //             for k in 0..i {
-        //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
-        //             }
-        //         }
+    //     //             for k in 0..i {
+    //     //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+    //     //             }
+    //     //         }
 
-        //         for i in dim - 1..=0 {
-        //             for k in i + 1..dim {
-        //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
-        //             }
-        //             mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
-        //         }
-        //     }
-        //     Some(mat_inv)
-        // } else {
-        //     None
-        // }
-        unimplemented!();
-    }
+    //     //         for i in dim - 1..=0 {
+    //     //             for k in i + 1..dim {
+    //     //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+    //     //             }
+    //     //             mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
+    //     //         }
+    //     //     }
+    //     //     Some(mat_inv)
+    //     // } else {
+    //     //     None
+    //     // }
+    //     unimplemented!();
+    // }
 
     /// Returns true if the matrix is a square matrix, false otherwise.usize
     ///
