@@ -1,6 +1,6 @@
 # matrices
 
-`matrices` is a simple library for doing calculations with matrices and vectors. The full documentation can be found here: [rustdocs]
+`matrices` is a simple library for doing calculations with matrices.
 
 ## Features
 ### Basic operations
@@ -32,5 +32,3 @@ This library implements basic arithmetic operations on matrices. The operations 
 `transpose()`: Transposes a matrix.
 
 `is_square()`: Checks whether the matrix is a square or not.
-
-[rustdocs]: 
