@@ -1,17 +1,18 @@
 [package]
 name = "matrices"
+description = "This is a simple library for doing calculations with matrices."
 version = "0.0.1"
 authors = ["Jonas Wiebe"]
 edition = "2018"
+repository = "https://github.com/wiebecommajonas/libmatrices"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 name = "matrices"
 path = "src/lib.rs"
-repository = "https://github.com/wiebecommajonas/libmatrices"
-readme = "README.md"
-license = "MIT OR Apache-2.0"
 doc = true
 test = true
 edition = "2018"
