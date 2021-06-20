@@ -1,5 +1,5 @@
 [package]
-name = "matrices"
+name = "libmat"
 description = "This is a simple library for doing calculations with matrices."
 version = "0.0.1"
 authors = ["Jonas Wiebe"]
