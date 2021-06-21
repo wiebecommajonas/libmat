@@ -81,8 +81,8 @@ where
 /// ```
 /// use libmat::mat::Matrix;
 /// use libmat::matrix;
-/// let mat_a: Matrix<i32> = matrix![1, 2; 3, 4];
-/// let mat_b: Matrix<i32> = matrix![-1, -2; -3, -4];
+/// let mat_a: Matrix<i32> = matrix!{1, 2; 3, 4};
+/// let mat_b: Matrix<i32> = matrix!{-1, -2; -3, -4};
 /// assert_eq!(-&mat_a, mat_b);
 /// ```
 impl<T> Neg for &Matrix<T>
@@ -110,9 +110,10 @@ where
 ///
 /// ```
 /// use libmat::mat::Matrix;
-/// let mat_a = Matrix::from_vec(2, 4, vec![1, 2, 3, 4, 5, 6, 7, 8]);
-/// let mat_b = Matrix::from_vec(4, 3, vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-/// let mat_c = Matrix::from_vec(2, 3, vec![70, 80, 90, 158, 184, 210]);
+/// use libmat::matrix;
+/// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8};
+/// let mat_b = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9; 10, 11, 12};
+/// let mat_c = matrix!{70, 80, 90; 158, 184, 210};
 /// assert_eq!(&mat_a * &mat_b, mat_c);
 /// ```
 impl<T> Mul for &Matrix<T>
@@ -151,9 +152,10 @@ where
 ///
 /// ```
 /// use libmat::mat::{Matrix, Vector};
-/// let v_a = Vector::<u32>::from(vec![1, 2, 3]);
-/// let mat_a = Matrix::<u32>::from_vec(3, 3, vec![1, 2, 3, 4, 5, 6, 7, 8, 9]);
-/// let v_b = Vector::<u32>::from(vec![30, 36, 42]).to_row_vector();
+/// use libmat::{matrix, vector};
+/// let v_a = vector![1, 2, 3];
+/// let mat_a = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9};
+/// let v_b = vector![30, 36, 42].to_row_vector();
 /// assert_eq!(&v_a.to_row_vector() * &mat_a, v_b);
 /// ```
 impl<T> Mul<&Vector<T>> for &Matrix<T>
@@ -176,8 +178,9 @@ where
 ///
 /// ```
 /// use libmat::mat::Matrix;
-/// let mat_a = Matrix::from_vec(2, 2, vec![1, 2, 3, 4]);
-/// let mat_b = Matrix::from_vec(2, 2, vec![2, 4, 6, 8]);
+/// use libmat::matrix;
+/// let mat_a = matrix!{1, 2; 3, 4};
+/// let mat_b = matrix!{2, 4; 6, 8};
 /// assert_eq!(&mat_a * 2, mat_b);
 /// ```
 impl<T> Mul<T> for &Matrix<T>

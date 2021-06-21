@@ -1,11 +1,13 @@
 [package]
 name = "libmat"
-description = "This is a simple library for doing calculations with matrices."
+description = "This library provides tools for linear algebra."
 version = "0.1.0"
 authors = ["Jonas Wiebe"]
 edition = "2018"
 repository = "https://github.com/wiebecommajonas/libmatrices"
 readme = "README.md"
+keywords = ["matrix", "vector", "algebra", "maths"]
+categories = ["mathematics"]
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -14,7 +14,18 @@
 //! assert_eq!(&vec_a * &vec_b, 0);
 //! assert_eq!(&vec_a * &vec_c, 0);
 //! assert_eq!(&vec_c * &vec_b, 0);
+//!
+//! let mat_a = Matrix::<u32>::one(3);
+//! let mat_b = matrix!{
+//!     1, 2, 3;
+//!     3, 2, 1;
+//!     2, 1, 3;
+//! };
+//!
+//! // Are the matrices invertible?
+//! assert_ne!(mat_a.det(), 0);
+//! assert_ne!(mat_b.det(), 0);
 //! ```
 
-pub mod macros;
+mod macros;
 pub mod mat;

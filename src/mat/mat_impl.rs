@@ -47,7 +47,8 @@ where
     ///
     /// ```
     /// use libmat::mat::Matrix;
-    /// let mat = Matrix::from_vec(3, 3, vec![1, 2, 3, 3, 2, 1, 2, 1, 3]);
+    /// use libmat::matrix;
+    /// let mat = matrix!{1, 2, 3; 3, 2, 1; 2, 1, 3};
     /// println!("{}", mat);
     ///
     /// // Output:
@@ -203,7 +204,8 @@ where
     ///
     /// ```
     /// use libmat::mat::Matrix;
-    /// let mat = Matrix::from_vec(3, 3, vec![1, 2, 3, 3, 2, 1, 2, 1, 3]);
+    /// use libmat::matrix;
+    /// let mat = matrix!{1, 2, 3; 3, 2, 1; 2, 1, 3};
     /// assert_eq!(mat.det(), -12.0);
     /// ```
     pub fn det(&self) -> f64
@@ -286,11 +288,12 @@ where
     ///
     /// ```
     /// use libmat::mat::Matrix;
-    /// let mat_a = Matrix::from_vec(3, 4, vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    /// use libmat::matrix;
+    /// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12};
     /// // 1  2  3  4
     /// // 5  6  7  8
     /// // 9 10 11 12
-    /// let mat_b = Matrix::from_vec(4, 3, vec![1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]);
+    /// let mat_b = matrix!{1, 5, 9; 2, 6, 10; 3, 7, 11; 4, 8, 12};
     /// // 1 5  9
     /// // 2 6 10
     /// // 3 7 11

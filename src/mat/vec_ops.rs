@@ -9,8 +9,9 @@ use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 ///
 /// ```
 /// use libmat::mat::Vector;
-/// let vec_a = Vector::from(vec![1, 2, 3]);
-/// let vec_b = Vector::from(vec![3, 2, 1]);
+/// use libmat::vector;
+/// let vec_a = vector![1, 2, 3];
+/// let vec_b = vector![3, 2, 1];
 /// assert_eq!(&vec_a + &vec_b, Vector::new(3, 4));
 /// ```
 impl<T> Add for &Vector<T>
@@ -51,9 +52,10 @@ where
 ///
 /// ```
 /// use libmat::mat::Vector;
-/// let vec_a = Vector::from(vec![1_i32, 2, 3]);
-/// let vec_b = Vector::from(vec![3_i32, 2, 1]);
-/// assert_eq!(&vec_a - &vec_b, Vector::from(vec![-2, 0, 2]));
+/// use libmat::vector;
+/// let vec_a = vector![1_i32, 2, 3];
+/// let vec_b = vector![3_i32, 2, 1];
+/// assert_eq!(&vec_a - &vec_b, vector![-2, 0, 2]);
 /// ```
 impl<T> Sub for &Vector<T>
 where
@@ -93,8 +95,9 @@ where
 ///
 /// ```
 /// use libmat::mat::Vector;
+/// use libmat::vector;
 /// let vec_a = Vector::new(4, 3);
-/// let vec_b = Vector::from(vec![5, 6, 7, 8]);
+/// let vec_b = vector![5, 6, 7, 8];
 /// assert_eq!(&vec_a * &vec_b, 78);
 /// assert_eq!(&vec_b * &vec_a, 78);
 /// ```
@@ -122,10 +125,11 @@ where
 ///
 /// ```
 /// use libmat::mat::{Matrix, Vector};
+/// use libmat::{matrix, vector};
 /// let mat_a = Matrix::<u32>::one(4);
-/// let mat_b = Matrix::from_vec(4, 3, vec![1, 2, 3, 4, 4, 3, 2, 1, 3, 4, 1, 2]);
-/// let vec_a = Vector::from(vec![4, 5, 6, 7]).to_row_vector();
-/// let vec_b = Vector::from(vec![64, 41, 59]).to_row_vector();
+/// let mat_b = matrix!{1, 2, 3; 4, 4, 3; 2, 1, 3; 4, 1, 2};
+/// let vec_a = vector![4, 5, 6, 7].to_row_vector();
+/// let vec_b = vector![64, 41, 59].to_row_vector();
 /// assert_eq!(&vec_a * &mat_a, vec_a);
 /// assert_eq!(&vec_a * &mat_b, vec_b);
 /// ```
@@ -193,7 +197,8 @@ where
 ///
 /// ```
 /// use libmat::mat::Vector;
-/// let vec_a = Vector::from(vec![1, 2, 3]);
+/// use libmat::vector;
+/// let vec_a = vector![1, 2, 3];
 /// assert_eq!(vec_a[0], 1);
 /// assert_eq!(vec_a[1], 2);
 /// assert_eq!(vec_a[2], 3);
@@ -212,13 +217,14 @@ impl<T> Index<usize> for Vector<T> {
 ///
 /// ```
 /// use libmat::mat::Vector;
+/// use libmat::vector;
 /// let mut vec_a = Vector::new(3, 1);
 /// vec_a[1] = 2;
 /// vec_a[2] = 3;
 /// assert_eq!(vec_a[0], 1);
 /// assert_eq!(vec_a[1], 2);
 /// assert_eq!(vec_a[2], 3);
-/// assert_eq!(vec_a, Vector::from(vec![1, 2, 3]));
+/// assert_eq!(vec_a, vector![1, 2, 3]);
 /// ```
 impl<T> IndexMut<usize> for Vector<T> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
