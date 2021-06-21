@@ -1,7 +1,7 @@
 use super::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
 use std::convert::From;
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 
 /// Vectors can be added by adding their references.
 ///
@@ -73,6 +73,17 @@ where
     fn sub_assign(&mut self, vector: &Vector<T>) {
         let v = &self.clone() - vector;
         self.entries = v.entries;
+    }
+}
+
+impl<T> Neg for &Vector<T>
+where
+    T: Sub<Output = T> + One + Zero + Clone + Copy,
+{
+    type Output = Vector<T>;
+
+    fn neg(self) -> Self::Output {
+        &Vector::new(self.get_size(), T::zero()) - &self.clone()
     }
 }
 

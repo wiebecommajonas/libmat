@@ -80,8 +80,9 @@ where
 ///
 /// ```
 /// use libmat::mat::Matrix;
-/// let mat_a: Matrix<i32> = Matrix::from_vec(2, 2, vec![1, 2, 3, 4]);
-/// let mat_b: Matrix<i32> = Matrix::from_vec(2, 2, vec![-1, -2, -3, -4]);
+/// use libmat::matrix;
+/// let mat_a: Matrix<i32> = matrix![1, 2; 3, 4];
+/// let mat_b: Matrix<i32> = matrix![-1, -2; -3, -4];
 /// assert_eq!(-&mat_a, mat_b);
 /// ```
 impl<T> Neg for &Matrix<T>
