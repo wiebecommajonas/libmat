@@ -1,4 +1,4 @@
-use matrices::*;
+use libmat::mat::Matrix;
 
 #[test]
 #[should_panic]

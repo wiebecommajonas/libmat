@@ -1,0 +1,309 @@
+use super::dims::Dimensions;
+use super::Matrix;
+use num_traits::identities::{One, Zero};
+use num_traits::{cast, sign};
+use std::fmt::Display;
+
+impl<T> Matrix<T>
+where
+    T: One + Zero + Clone + Copy,
+{
+    /// Create a new matrix of type `T` with `init` as the default value for each entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Row count of matrix
+    /// * `cols` - Column count of matrix
+    /// * `init` -  The initial value of all entries
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat = Matrix::new(3, 4, 9);
+    /// println!("{}", mat);
+    ///
+    /// // Output:
+    /// // 9 9 9 9
+    /// // 9 9 9 9
+    /// // 9 9 9 9
+    /// ```
+    pub fn new(rows: usize, cols: usize, init: T) -> Matrix<T> {
+        Matrix::<T> {
+            dims: Dimensions::new(rows, cols),
+            matrix: vec![init; rows * cols],
+        }
+    }
+
+    /// Create a new matrix from a vec.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Row count of matrix
+    /// * `cols` - Column count of matrix
+    /// * `vec` - Vector of length `rows x cols` where `vec[i * cols + j]` is the entry in row `i` and column `j`
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat = Matrix::from_vec(3, 3, vec![1, 2, 3, 3, 2, 1, 2, 1, 3]);
+    /// println!("{}", mat);
+    ///
+    /// // Output:
+    /// // 1 2 3
+    /// // 3 2 1
+    /// // 2 1 3
+    /// ```
+    pub fn from_vec(rows: usize, cols: usize, vec: Vec<T>) -> Matrix<T> {
+        if vec.len() != rows * cols {
+            panic!("vec must have a length of rows * cols");
+        } else {
+            Matrix::<T> {
+                dims: Dimensions::new(rows, cols),
+                matrix: vec,
+            }
+        }
+    }
+
+    /// Create an identity matrix of type `T` with dimensions `dim x dim`.
+    ///
+    /// # Arguments
+    ///
+    /// * `dim` - The dimensions of a square matrix
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat_a: Matrix<u32> = Matrix::one(3);
+    /// println!("{}", mat_a);
+    ///
+    /// // Output:
+    /// // 1 0 0
+    /// // 0 1 0
+    /// // 0 0 1
+    /// ```
+    pub fn one(dim: usize) -> Matrix<T> {
+        Self::diag(dim, T::one())
+    }
+
+    /// Create a zero-matrix of type `T`.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Row count of matrix
+    /// * `cols` - Column count of matrix
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat = Matrix::zero(3, 8);
+    /// assert_eq!(mat, Matrix::new(3, 8, 0));
+    /// ```
+    pub fn zero(rows: usize, cols: usize) -> Matrix<T> {
+        Self::new(rows, cols, T::zero())
+    }
+
+    /// Create a diagonal matrix of type `T` with entries `init`.
+    ///
+    /// # Arguments
+    ///
+    /// * `dim` - The dimensions of a square matrix
+    /// * `init` - The initial value of diagonal entries
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat = Matrix::diag(3, 1);
+    /// assert_eq!(mat, Matrix::one(3));
+    /// ```
+    pub fn diag(dim: usize, init: T) -> Matrix<T> {
+        let mut res_mat = Matrix::new(dim, dim, T::zero());
+        for i in (0..res_mat.matrix.len()).step_by(dim + 1) {
+            res_mat.matrix[i] = init;
+        }
+        res_mat
+    }
+    fn lupdecompose(&self) -> Option<(Matrix<f64>, Vec<usize>)>
+    where
+        T: sign::Signed + PartialOrd + cast::ToPrimitive,
+    {
+        if !self.is_square() {
+            panic!("Matrix should be a square.")
+        }
+        let mut a = Matrix::zero(self.dims.get_rows(), self.dims.get_cols());
+        a.matrix = self.matrix.iter().map(|&x| x.to_f64().unwrap()).collect();
+        let dim = self.dims.get_rows();
+        let mut imax: usize;
+        let mut max_a: f64;
+        let mut p: Vec<usize> = (0..=dim).collect();
+
+        for i in 0..dim {
+            max_a = 0_f64;
+            imax = i;
+
+            for k in i..dim {
+                // if a.matrix[i * dim + k].abs() > max_a {
+                //     max_a = a.matrix[i * dim + k].abs();
+                //     imax = k;
+                // }
+                if a[i][k].abs() > max_a {
+                    max_a = a[i][k].abs();
+                    imax = k;
+                }
+            }
+
+            if max_a < 0.000001 {
+                return None;
+            }
+
+            if imax != i {
+                let j = p[i];
+                p[i] = p[imax];
+                p[imax] = j;
+
+                let mut t_ij: Matrix<f64> = Matrix::one(self.dims.get_rows());
+                // t_ij.matrix[i * dim + i] = 0_f64;
+                // t_ij.matrix[imax * dim + imax] = 0_f64;
+                // t_ij.matrix[i * dim + imax] = 1_f64;
+                // t_ij.matrix[imax * dim + i] = 1_f64;
+                t_ij[i][i] = 0_f64;
+                t_ij[imax][imax] = 0_f64;
+                t_ij[i][imax] = 1_f64;
+                t_ij[imax][i] = 1_f64;
+                // switch rows i and imax
+                a = &a * &t_ij;
+
+                p[dim] += 1;
+            }
+
+            for j in (i + 1)..dim {
+                // a.matrix[j * dim + i] = a.matrix[j * dim + i] / a.matrix[i * dim + i];
+                a[j][i] = a[j][i] / a[i][i];
+                for k in (i + 1)..dim {
+                    // a.matrix[j * dim + k] =
+                    //     a.matrix[j * dim + k] - (a.matrix[j * dim + i] * a.matrix[i * dim + k])
+                    a[j][k] = a[j][k] - a[j][i] * a[i][k];
+                }
+            }
+        }
+        Some((a, p))
+    }
+
+    /// Calculate the determinant of a square matrix.
+    ///
+    /// # Caution
+    ///
+    /// Calculation may not be exact. Be sure to use `round()` when calculating the determinant of a integer matrix.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat = Matrix::from_vec(3, 3, vec![1, 2, 3, 3, 2, 1, 2, 1, 3]);
+    /// assert_eq!(mat.det(), -12.0);
+    /// ```
+    pub fn det(&self) -> f64
+    where
+        T: sign::Signed + PartialOrd + Display + cast::ToPrimitive,
+    {
+        if let Some((mat, p)) = self.lupdecompose() {
+            let mut det = mat.matrix[0];
+            for i in 1..mat.dims.get_cols() {
+                det = det * mat.matrix[i * mat.dims.get_cols() + i];
+            }
+            if (p[mat.dims.get_rows()] - mat.dims.get_rows()) % 2 == 0 {
+                det
+            } else {
+                -det
+            }
+        } else {
+            0_f64
+        }
+    }
+
+    // / Invert a matrix.
+    // /
+    // / # Example
+    // /
+    // / ```
+    // / use libmat::mat::Matrix;
+    // / let mat_a = Matrix::<i32>::from_vec(2, 2, vec![0, -1, 1, 0]);
+    // / let mat_b = Matrix::<f64>::from_vec(2, 2, vec![-1.0, 0.0, 0.0, 1.0]);
+    // / assert_eq!(mat_a.invert().unwrap(), mat_b);
+    // / ```
+    // pub fn invert(&self) -> Option<Matrix<f64>>
+    // where
+    //     T: sign::Signed + PartialOrd + cast::ToPrimitive,
+    // {
+    //     // if let Some((mat, p)) = self.lupdecompose() {
+    //     //     let dim = mat.dims.get_rows();
+    //     //     let mut mat_inv = Matrix::<f64>::zero(dim, dim);
+    //     //     for j in 0..dim {
+    //     //         for i in 0..dim {
+    //     //             mat_inv[i][j] = if p[i] == j { 1.0 } else { 0.0 };
+
+    //     //             for k in 0..i {
+    //     //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+    //     //             }
+    //     //         }
+
+    //     //         for i in dim - 1..=0 {
+    //     //             for k in i + 1..dim {
+    //     //                 mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+    //     //             }
+    //     //             mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
+    //     //         }
+    //     //     }
+    //     //     Some(mat_inv)
+    //     // } else {
+    //     //     None
+    //     // }
+    //     unimplemented!();
+    // }
+
+    /// Returns true if the matrix is a square matrix, false otherwise.usize
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat_a: Matrix<i32> = Matrix::one(3);
+    /// let mat_b: Matrix<f32> = Matrix::zero(3, 4);
+    /// assert_eq!(mat_a.is_square(), true);
+    /// assert_eq!(mat_b.is_square(), false);
+    /// ```
+    pub fn is_square(&self) -> bool {
+        self.dims.is_square()
+    }
+
+    /// Transpose a matrix.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use libmat::mat::Matrix;
+    /// let mat_a = Matrix::from_vec(3, 4, vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    /// // 1  2  3  4
+    /// // 5  6  7  8
+    /// // 9 10 11 12
+    /// let mat_b = Matrix::from_vec(4, 3, vec![1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]);
+    /// // 1 5  9
+    /// // 2 6 10
+    /// // 3 7 11
+    /// // 4 8 12
+    /// assert_eq!(mat_a.transpose(), mat_b);
+    /// ```
+    pub fn transpose(&self) -> Matrix<T> {
+        let mut vec = Vec::<T>::new();
+        for i in 0..self.dims.get_cols() {
+            for j in 0..self.dims.get_rows() {
+                vec.push(self.matrix[j * self.dims.get_cols() + i]);
+            }
+        }
+        Matrix::<T>::from_vec(self.dims.get_cols(), self.dims.get_rows(), vec)
+    }
+}

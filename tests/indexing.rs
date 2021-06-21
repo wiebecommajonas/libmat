@@ -1,4 +1,4 @@
-use matrices::*;
+use libmat::mat::Matrix;
 #[test]
 fn one_idx() {
     let a = Matrix::<u32>::one(3);
