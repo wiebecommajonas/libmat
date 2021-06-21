@@ -40,7 +40,7 @@ assert_ne!(mat_b.det(), 0);
 
 ## Changes
 
-A full changelog is available in [`CHANGELOG.md`]
+A full changelog is available in [`CHANGELOG.md`](https://github.com/wiebecommajonas/libmat/blob/master/CHANGELOG.md)
 
 ## License
 
