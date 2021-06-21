@@ -1,5 +1,9 @@
 # libmat
 
+[![Crates.io](https://img.shields.io/crates/v/libmat)](https://crates.io/crates/libmat/0.1.0)
+[![License](https://img.shields.io/crates/l/libmat)](#license)
+[![Downloads](https://img.shields.io/crates/d/libmat)](https://crates.io/crates/libmat/0.1.0)
+
 This library provides tools for linear algebra. For a full documentation, please visit [docs.rs].
 
 ## Usage
