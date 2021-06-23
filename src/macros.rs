@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! matrix {
-    ( $( $( $x:expr ),+ $(,)? );+ $(;)? ) => {{
+    ( $( $( $x:expr ),+ $(,)? );+ $(;)? ) => {
+        {
         let mut matrix_rows: usize = 0;
         let mut matrix_cols: usize = 0;
         let mut matrix_vec = Vec::new();
@@ -12,7 +13,23 @@ macro_rules! matrix {
         )+
         matrix_cols = matrix_vec.len()/matrix_rows;
         Matrix::from_vec(matrix_rows, matrix_cols, matrix_vec)
-    }};
+    }
+};
+}
+
+#[macro_export]
+macro_rules! smatrix {
+    ( $( $( $x:expr ),+ $(,)? );+ $(;)? ) => {
+        {
+            let arr = [$([$($x),+]),+];
+            SMatrix::from(arr)
+        }
+    };
+    ([[$init:expr; $c:expr]; $r:expr]) => {
+        {
+            SMatrix::new::<$r, $c>($init)
+        }
+    };
 }
 
 #[macro_export]
