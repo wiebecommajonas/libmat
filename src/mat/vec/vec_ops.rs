@@ -1,4 +1,4 @@
-use super::{Matrix, Vector};
+use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
 use std::convert::From;
 use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
@@ -8,8 +8,8 @@ use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
-/// use libmat::vector;
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
 /// let vec_a = vector![1, 2, 3];
 /// let vec_b = vector![3, 2, 1];
 /// assert_eq!(&vec_a + &vec_b, Vector::new(3, 4));
@@ -51,8 +51,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
-/// use libmat::vector;
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
 /// let vec_a = vector![1_i32, 2, 3];
 /// let vec_b = vector![3_i32, 2, 1];
 /// assert_eq!(&vec_a - &vec_b, vector![-2, 0, 2]);
@@ -94,8 +94,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
-/// use libmat::vector;
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
 /// let vec_a = Vector::new(4, 3);
 /// let vec_b = vector![5, 6, 7, 8];
 /// assert_eq!(&vec_a * &vec_b, 78);
@@ -124,8 +124,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::{Matrix, Vector};
-/// use libmat::{matrix, vector};
+/// # use libmat::mat::{Matrix, Vector};
+/// # use libmat::{matrix, vector};
 /// let mat_a = Matrix::<u32>::one(4);
 /// let mat_b = matrix!{1, 2, 3; 4, 4, 3; 2, 1, 3; 4, 1, 2};
 /// let vec_a = vector![4, 5, 6, 7].to_row_vector();
@@ -152,7 +152,7 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
+/// # use libmat::mat::Vector;
 /// let vec_a = Vector::new(3, 1);
 /// assert_eq!(&vec_a * 2, Vector::new(3, 2));
 /// ```
@@ -176,7 +176,7 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
+/// # use libmat::mat::Vector;
 /// let vec_a = Vector::new(3, 1_f32);
 /// assert_eq!(&vec_a / 2.0, Vector::new(3, 0.5));
 /// ```
@@ -196,8 +196,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
-/// use libmat::vector;
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
 /// let vec_a = vector![1, 2, 3];
 /// assert_eq!(vec_a[0], 1);
 /// assert_eq!(vec_a[1], 2);
@@ -216,8 +216,8 @@ impl<T> Index<usize> for Vector<T> {
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Vector;
-/// use libmat::vector;
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
 /// let mut vec_a = Vector::new(3, 1);
 /// vec_a[1] = 2;
 /// vec_a[2] = 3;

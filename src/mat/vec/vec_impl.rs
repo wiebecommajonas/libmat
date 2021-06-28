@@ -1,5 +1,5 @@
-use super::dims::Dimensions;
-use super::{Matrix, Vector};
+use crate::mat::dims::Dimensions;
+use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
 use std::cmp::min;
 use std::convert::{From, Into};

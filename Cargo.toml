@@ -7,7 +7,7 @@ edition = "2018"
 repository = "https://github.com/wiebecommajonas/libmat"
 readme = "README.md"
 keywords = ["matrix", "vector", "algebra", "maths"]
-categories = ["mathematics"]
+categories = ["mathematics", "science"]
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

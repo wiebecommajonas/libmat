@@ -26,6 +26,11 @@
 //! assert_ne!(mat_a.det(), 0_f64);
 //! assert_ne!(mat_b.det(), 0_f64);
 //! ```
+//!
 
+#![doc(html_logo_url = "../logo.png")]
+#![doc(html_no_source)]
+
+pub mod err;
 mod macros;
 pub mod mat;

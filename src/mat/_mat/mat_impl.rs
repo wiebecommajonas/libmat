@@ -1,5 +1,6 @@
-use super::dims::Dimensions;
-use super::Matrix;
+use crate::err::MatrixError;
+use crate::mat::dims::Dimensions;
+use crate::mat::Matrix;
 use num_traits::identities::{One, Zero};
 use num_traits::{cast, sign};
 use std::fmt::Display;
@@ -19,7 +20,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
+    /// # use libmat::mat::Matrix;
     /// let mat = Matrix::new(3, 4, 9);
     /// println!("{}", mat);
     ///
@@ -46,8 +47,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
-    /// use libmat::matrix;
+    /// # use libmat::mat::Matrix;
+    /// # use libmat::matrix;
     /// let mat = matrix!{1, 2, 3; 3, 2, 1; 2, 1, 3};
     /// println!("{}", mat);
     ///
@@ -67,6 +68,31 @@ where
         }
     }
 
+    /// Get the number of rows
+    pub fn row_count(&self) -> usize {
+        self.dims.get_rows()
+    }
+
+    /// Get the number of columns
+    pub fn col_count(&self) -> usize {
+        self.dims.get_cols()
+    }
+
+    // pub fn insert_row(&mut self, at: usize, row: &[T]) -> Result<(), MatrixError> {
+    //     if row.len() != self[0].len() {
+    //         Err(MatrixError::IndexOutOfBounds)
+    //     } else if at * self.dims.get_cols() >= self.matrix.len() {
+    //         Err(MatrixError::IndexOutOfBounds)
+    //     } else {
+    //         for i in 0..row.len() {
+    //             self.matrix.insert(at * self.dims.get_cols() + i, row[i]);
+    //         }
+    //         Ok(())
+    //     }
+    // }
+
+    // pub fn insert_col() {}
+
     /// Create an identity matrix of type `T` with dimensions `dim x dim`.
     ///
     /// # Arguments
@@ -76,7 +102,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
+    /// # use libmat::mat::Matrix;
     /// let mat_a: Matrix<u32> = Matrix::one(3);
     /// println!("{}", mat_a);
     ///
@@ -99,7 +125,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
+    /// # use libmat::mat::Matrix;
     /// let mat = Matrix::zero(3, 8);
     /// assert_eq!(mat, Matrix::new(3, 8, 0));
     /// ```
@@ -117,14 +143,22 @@ where
     /// # Examples
     ///
     /// ```
-    /// use libmat::mat::Matrix;
+    /// # use libmat::mat::Matrix;
     /// let mat = Matrix::diag(3, 1);
     /// assert_eq!(mat, Matrix::one(3));
     /// ```
     pub fn diag(dim: usize, init: T) -> Matrix<T> {
-        let mut res_mat = Matrix::new(dim, dim, T::zero());
-        for i in (0..res_mat.matrix.len()).step_by(dim + 1) {
-            res_mat.matrix[i] = init;
+        &Matrix::one(dim) * init
+    }
+
+    /// Creates a diagonal matrix with dimensions `dim x dim` and initial entries specified in `entries`.
+    pub fn diag_with(dim: usize, entries: &[T]) -> Matrix<T> {
+        if entries.len() > dim || entries.len() < dim {
+            panic!("Input slice does not have the correct length.");
+        }
+        let mut res_mat = Matrix::one(dim);
+        for i in 0..dim {
+            res_mat[i][i] = entries[i];
         }
         res_mat
     }
@@ -203,8 +237,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
-    /// use libmat::matrix;
+    /// # use libmat::mat::Matrix;
+    /// # use libmat::matrix;
     /// let mat = matrix!{1, 2, 3; 3, 2, 1; 2, 1, 3};
     /// assert_eq!(mat.det(), -12.0);
     /// ```
@@ -232,8 +266,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
-    /// use libmat::matrix;
+    /// # use libmat::mat::Matrix;
+    /// # use libmat::matrix;
     /// let mat_a = matrix!{0, -1; 1, 0};
     /// let mat_b = matrix!{0.0, 1.0; -1.0, 0.0};
     /// assert_eq!(mat_a.invert().unwrap(), mat_b);
@@ -267,12 +301,12 @@ where
         }
     }
 
-    /// Returns true if the matrix is a square matrix, false otherwise.usize
+    /// Returns true if the matrix is a square matrix, false otherwise.
     ///
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
+    /// # use libmat::mat::Matrix;
     /// let mat_a: Matrix<i32> = Matrix::one(3);
     /// let mat_b: Matrix<f32> = Matrix::zero(3, 4);
     /// assert_eq!(mat_a.is_square(), true);
@@ -287,8 +321,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use libmat::mat::Matrix;
-    /// use libmat::matrix;
+    /// # use libmat::mat::Matrix;
+    /// # use libmat::matrix;
     /// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12};
     /// // 1  2  3  4
     /// // 5  6  7  8

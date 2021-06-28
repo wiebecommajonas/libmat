@@ -1,4 +1,4 @@
-use super::{Matrix, Vector};
+use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
@@ -7,7 +7,7 @@ use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 ///
 /// # Example
 /// ```
-/// use libmat::mat::Matrix;
+/// # use libmat::mat::Matrix;
 /// let mat_a = Matrix::one(3);
 /// let mat_b = Matrix::one(3);
 /// let mat_c = Matrix::diag(3, 2);
@@ -47,7 +47,7 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
+/// # use libmat::mat::Matrix;
 /// let mat_a: Matrix<i32> = Matrix::one(3);
 /// let mat_b: Matrix<i32> = Matrix::one(3);
 /// assert_eq!(&mat_a - &mat_b, Matrix::zero(3, 3));
@@ -79,8 +79,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
-/// use libmat::matrix;
+/// # use libmat::mat::Matrix;
+/// # use libmat::matrix;
 /// let mat_a: Matrix<i32> = matrix!{1, 2; 3, 4};
 /// let mat_b: Matrix<i32> = matrix!{-1, -2; -3, -4};
 /// assert_eq!(-&mat_a, mat_b);
@@ -109,8 +109,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
-/// use libmat::matrix;
+/// # use libmat::mat::Matrix;
+/// # use libmat::matrix;
 /// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8};
 /// let mat_b = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9; 10, 11, 12};
 /// let mat_c = matrix!{70, 80, 90; 158, 184, 210};
@@ -151,8 +151,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::{Matrix, Vector};
-/// use libmat::{matrix, vector};
+/// # use libmat::mat::{Matrix, Vector};
+/// # use libmat::{matrix, vector};
 /// let v_a = vector![1, 2, 3];
 /// let mat_a = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9};
 /// let v_b = vector![30, 36, 42].to_row_vector();
@@ -177,8 +177,8 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
-/// use libmat::matrix;
+/// # use libmat::mat::Matrix;
+/// # use libmat::matrix;
 /// let mat_a = matrix!{1, 2; 3, 4};
 /// let mat_b = matrix!{2, 4; 6, 8};
 /// assert_eq!(&mat_a * 2, mat_b);
@@ -203,7 +203,7 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
+/// # use libmat::mat::Matrix;
 /// let mat_a = Matrix::new(3, 3, 1_f32);
 /// assert_eq!(&mat_a / 2_f32, &mat_a * 0.5_f32);
 /// ```
@@ -215,7 +215,7 @@ where
 
     fn div(self, scalar: T) -> Self::Output {
         if scalar == T::zero() {
-            panic!("Cannot divide by '0'.");
+            panic!("Cannot divide by zero.");
         }
         self * (T::one() / scalar)
     }
@@ -247,7 +247,7 @@ where
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
+/// # use libmat::mat::Matrix;
 /// let mat = Matrix::<u32>::one(3);
 /// assert_eq!(mat[0], vec![1_u32, 0, 0]);
 /// assert_eq!(mat[0][0], 1);
@@ -270,7 +270,7 @@ impl<T> Index<usize> for Matrix<T> {
 /// # Example
 ///
 /// ```
-/// use libmat::mat::Matrix;
+/// # use libmat::mat::Matrix;
 /// let mut mat = Matrix::<u32>::zero(3, 3);
 /// mat[0][0] = 1;
 /// mat[1][1] = 1;

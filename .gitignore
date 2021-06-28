@@ -1,4 +1,15 @@
+# Cargo
 /target
 Cargo.lock
 
+# LaTeX
+*.tex
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.gz
+
+# Local
 .DS_Store
+TODO.md
