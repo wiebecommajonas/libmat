@@ -22,4 +22,4 @@ crate_type = ["lib"]
 
 [dependencies]
 num = "0.4.0"
-num-traits = "0.2.6"
+num-traits = "0.2.14"
