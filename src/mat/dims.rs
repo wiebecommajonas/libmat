@@ -11,9 +11,6 @@ impl Dimensions {
         }
         Dimensions { rows, cols }
     }
-    pub fn square(dim: usize) -> Dimensions {
-        Dimensions::new(dim, dim)
-    }
     pub fn is_square(&self) -> bool {
         self.rows == self.cols
     }

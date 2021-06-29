@@ -39,7 +39,7 @@ macro_rules! matrix {
 }
 
 #[macro_export]
-/// Creates a new [SMatrix](struct.SMatrix.html).
+/// Creates a new [SMatrix].
 ///
 /// Supports [Wolfram Alpha](https://www.wolframalpha.com/input/?i=matrix+multiplication) syntax.
 macro_rules! smatrix {

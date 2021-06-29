@@ -203,28 +203,3 @@ where
         res
     }
 }
-
-macro_rules! impl_manual_det_smatrix_for {
-    ( $( $t:ty ),+ $(,)? ) => {
-        $(
-            impl SMatrix<$t, 1, 1> {
-                fn det_manual(&self) -> $t {
-                    self[0][0]
-                }
-            }
-            impl SMatrix<$t, 2, 2> {
-                fn det_manual(&self) -> $t {
-                    self[0][0] * self[1][1] - self[0][1] * self[1][0]
-                }
-            }
-            impl SMatrix<$t, 3, 3> {
-                fn det_manual(&self) -> $t {
-                    self[0][0] * self[1][1] * self[2][2] + self[1][0] * self[2][1] * self[0][2] + self[2][0] * self[0][1] * self[1][2]
-                    - self[0][2] * self[1][1] * self[2][0] - self[0][1] * self[1][0] * self[2][2] - self[0][0] * self[1][2] * self[2][1]
-                }
-            }
-        )+
-    };
-}
-
-impl_manual_det_smatrix_for!(i32, i64, f32, f64);

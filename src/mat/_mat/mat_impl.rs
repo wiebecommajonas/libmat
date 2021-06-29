@@ -1,4 +1,3 @@
-use crate::err::MatrixError;
 use crate::mat::dims::Dimensions;
 use crate::mat::Matrix;
 use num_traits::identities::{One, Zero};
