@@ -1,8 +1,8 @@
 # libmat
 
-[![Crates.io](https://img.shields.io/crates/v/libmat)](https://crates.io/crates/libmat/0.1.0)
+[![Crates.io](https://img.shields.io/crates/v/libmat)](https://crates.io/crates/libmat/0.2.0)
 [![License](https://img.shields.io/crates/l/libmat)](#license)
-[![Downloads](https://img.shields.io/crates/d/libmat)](https://crates.io/crates/libmat/0.1.0)
+[![Downloads](https://img.shields.io/crates/d/libmat)](https://crates.io/crates/libmat/0.2.0)
 
 This library provides tools for linear algebra. For a full documentation, please visit [docs.rs].
 
@@ -12,10 +12,18 @@ To use this library, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-libmat = "0.1.0"
+libmat = "0.2.0"
+```
+
+And this to your crate root:
+
+```rust
+extern crate libmat;
 ```
 
 ## Example
+
+This is a short example, for more examples check the [documentation][docs.rs].
 
 ```rust
 use libmat::mat::{Matrix, Vector};
