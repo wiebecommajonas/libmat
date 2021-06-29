@@ -1,7 +1,10 @@
 use crate::mat::SMatrix;
+use num_traits::cast::ToPrimitive;
 use num_traits::identities::{One, Zero};
+use num_traits::ops::inv::Inv;
+use num_traits::sign::Signed;
 use std::fmt::{Display, Formatter, Result};
-use std::ops::Add;
+use std::ops::{Add, Mul, Sub};
 
 impl<T, const M: usize, const N: usize> Display for SMatrix<T, M, N>
 where
@@ -64,5 +67,44 @@ where
             }
         }
         true
+    }
+}
+
+impl<T, const N: usize> Inv for SMatrix<T, N, N>
+where
+    T: Sub<Output = T> + Add<Output = T> + Mul<Output = T> + ToPrimitive + Signed,
+{
+    type Output = Option<SMatrix<f64, N, N>>;
+
+    fn inv(self) -> Self::Output {
+        if let Some((mat, p)) = self.lupdecompose() {
+            let dim = mat.row_count();
+            let mut mat_inv = SMatrix::<f64, N, N>::zero();
+            for j in 0..dim {
+                for i in 0..dim {
+                    mat_inv[i][j] = {
+                        if p[i] == j {
+                            1.0
+                        } else {
+                            0.0
+                        }
+                    };
+
+                    for k in 0..i {
+                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+                    }
+                }
+
+                for i in (0..=(dim - 1)).rev() {
+                    for k in (i + 1)..dim {
+                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+                    }
+                    mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
+                }
+            }
+            Some(mat_inv)
+        } else {
+            None
+        }
     }
 }

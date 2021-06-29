@@ -111,7 +111,11 @@ where
     /// // 0 0 1
     /// ```
     pub fn one(dim: usize) -> Matrix<T> {
-        Self::diag(dim, T::one())
+        let mut res = Matrix::<T>::zero(dim, dim);
+        for i in 0..dim {
+            res[i][i] = T::one();
+        }
+        res
     }
 
     /// Create a zero-matrix of type `T`.
@@ -147,7 +151,7 @@ where
     /// assert_eq!(mat, Matrix::one(3));
     /// ```
     pub fn diag(dim: usize, init: T) -> Matrix<T> {
-        &Matrix::one(dim) * init
+        &Matrix::<T>::one(dim) * init
     }
 
     /// Creates a diagonal matrix with dimensions `dim x dim` and initial entries specified in `entries`.
@@ -161,12 +165,12 @@ where
         }
         res_mat
     }
-    fn lupdecompose(&self) -> Option<(Matrix<f64>, Vec<usize>)>
+    pub fn lupdecompose(&self) -> Option<(Matrix<f64>, Vec<usize>)>
     where
         T: sign::Signed + PartialOrd + cast::ToPrimitive,
     {
         if !self.is_square() {
-            panic!("Matrix should be a square.")
+            return None;
         }
         let mut a = Matrix::zero(self.dims.get_rows(), self.dims.get_cols());
         a.matrix = self.matrix.iter().map(|&x| x.to_f64().unwrap()).collect();
@@ -247,6 +251,7 @@ where
     {
         if let Some((mat, p)) = self.lupdecompose() {
             let mut det = mat.matrix[0];
+            println!("{}", mat.dims.get_cols());
             for i in 1..mat.dims.get_cols() {
                 det = det * mat.matrix[i * mat.dims.get_cols() + i];
             }
@@ -257,46 +262,6 @@ where
             }
         } else {
             0_f64
-        }
-    }
-
-    /// Invert a matrix.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use libmat::mat::Matrix;
-    /// # use libmat::matrix;
-    /// let mat_a = matrix!{0, -1; 1, 0};
-    /// let mat_b = matrix!{0.0, 1.0; -1.0, 0.0};
-    /// assert_eq!(mat_a.invert().unwrap(), mat_b);
-    /// ```
-    pub fn invert(&self) -> Option<Matrix<f64>>
-    where
-        T: sign::Signed + PartialOrd + cast::ToPrimitive,
-    {
-        if let Some((mat, p)) = self.lupdecompose() {
-            let dim = mat.dims.get_rows();
-            let mut mat_inv = Matrix::<f64>::zero(dim, dim);
-            for j in 0..dim {
-                for i in 0..dim {
-                    mat_inv[i][j] = if p[i] == j { 1.0 } else { 0.0 };
-
-                    for k in 0..i {
-                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
-                    }
-                }
-
-                for i in dim - 1..=0 {
-                    for k in i + 1..dim {
-                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
-                    }
-                    mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
-                }
-            }
-            Some(mat_inv)
-        } else {
-            None
         }
     }
 

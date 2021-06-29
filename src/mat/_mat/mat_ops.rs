@@ -1,6 +1,5 @@
 use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
-use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 
 /// Matrices can be added by adding their references. Both matrices need to have the same dimensions.
@@ -218,27 +217,6 @@ where
             panic!("Cannot divide by zero.");
         }
         self * (T::one() / scalar)
-    }
-}
-
-impl<T> Display for Matrix<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        for i in 0..self.dims.get_rows() {
-            for j in 0..self.dims.get_cols() {
-                let ref n = self.matrix[i * self.dims.get_cols() + j];
-                if j == self.dims.get_cols() - 1 && i == self.dims.get_rows() - 1 {
-                    write!(f, "{}", n)?;
-                } else if j == self.dims.get_cols() - 1 {
-                    write!(f, "{}\n", n)?;
-                } else {
-                    write!(f, "{}\t", n)?;
-                }
-            }
-        }
-        Ok(())
     }
 }
 

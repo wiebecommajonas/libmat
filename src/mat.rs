@@ -27,11 +27,12 @@ pub struct Vector<T> {
 ///
 /// ```
 /// # use libmat::mat::SMatrix;
+/// # use num_traits::identities::One;
 /// # use libmat::smatrix;
 /// let mut mat_a: SMatrix<i32, 3, 3> = SMatrix::one();
 /// mat_a = mat_a * 2;
-/// let mat_b: SMatrix<i32, 3, 5> = smatrix!{1, 2, 3, 4, 5; 5, 4, 3, 2, 1; 3, 4, 5, 1, 2};
-/// assert_eq!(mat_a, mat_b * 2);
+/// mat_a[1] = [1,2,3];
+/// assert_eq!(mat_a, smatrix!{{2,0,0},{1,2,3},{0,0,2}});
 /// ```
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct SMatrix<T, const M: usize, const N: usize> {

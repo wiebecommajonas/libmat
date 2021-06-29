@@ -1,6 +1,8 @@
 use crate::mat::SMatrix;
 use num_traits::identities::{One, Zero};
-use std::ops::{Add, AddAssign, Deref, DerefMut, Mul, Neg, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
 impl<T, const M: usize, const N: usize> Add<SMatrix<T, M, N>> for SMatrix<T, M, N>
 where
@@ -83,6 +85,34 @@ where
             }
         }
         res
+    }
+}
+
+impl<T, const M: usize, const N: usize> MulAssign<T> for SMatrix<T, M, N>
+where
+    T: Mul<Output = T> + One + Copy,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        *self = *self * rhs
+    }
+}
+
+impl<T, const M: usize, const N: usize> Div<T> for SMatrix<T, M, N>
+where
+    T: Mul<Output = T> + Div<Output = T> + One + Copy,
+{
+    type Output = Self;
+    fn div(self, rhs: T) -> Self::Output {
+        self * (T::one() / rhs)
+    }
+}
+
+impl<T, const M: usize, const N: usize> DivAssign<T> for SMatrix<T, M, N>
+where
+    T: Mul<Output = T> + Div<Output = T> + One + Copy,
+{
+    fn div_assign(&mut self, rhs: T) {
+        *self = *self / rhs
     }
 }
 

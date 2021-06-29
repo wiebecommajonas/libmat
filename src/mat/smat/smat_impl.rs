@@ -1,8 +1,10 @@
 use crate::mat::SMatrix;
 use num_traits::cast::ToPrimitive;
 use num_traits::identities::{One, Zero};
+use num_traits::sign::Signed;
 use std::ops::{Add, Mul, Sub};
 
+/// Methods for matrices with general dimensions.
 impl<T, const M: usize, const N: usize> SMatrix<T, M, N>
 where
     T: Copy,
@@ -33,17 +35,17 @@ where
     }
 
     /// Get the number of rows
-    pub fn row_count(self) -> usize {
+    pub fn row_count(&self) -> usize {
         M
     }
 
     /// Get the number of columns
-    pub fn col_count(self) -> usize {
+    pub fn col_count(&self) -> usize {
         N
     }
 
     /// Returns true if the matrix is a square matrix, false otherwise.
-    pub fn is_square(self) -> bool {
+    pub fn is_square(&self) -> bool {
         M == N
     }
 
@@ -56,11 +58,11 @@ where
     /// ```
     /// # use libmat::mat::SMatrix;
     /// # use libmat::smatrix;
-    /// let mat_a: SMatrix<f64, 4, 3> = smatrix!{1, 2, 3;
+    /// let mat_a: SMatrix<i32, 4, 3> = smatrix!{1, 2, 3;
     ///                                          3, 2, 1;
     ///                                          2, 3, 1;
     ///                                          3, 1, 2};
-    /// assert_eq!(mat_a.transpose(), smatrix!(1,3,2,3;2,2,3,1;3,1,1,2));
+    /// assert_eq!(mat_a.transpose(), smatrix!{1,3,2,3;2,2,3,1;3,1,1,2});
     /// ```
     pub fn transpose(&self) -> SMatrix<T, N, M>
     where
@@ -69,19 +71,21 @@ where
         let mut res: SMatrix<T, N, M> = SMatrix::new(T::zero());
         for i in 0..M {
             for j in 0..N {
-                res[i][j] = self[j][i];
+                res[j][i] = self[i][j];
             }
         }
         res
     }
 }
 
-// SQUARE MATRICES
 impl<T, const N: usize> SMatrix<T, N, N>
 where
     T: Sub<Output = T> + Add<Output = T> + Mul<Output = T> + ToPrimitive,
 {
-    fn lupdecompose(&self) -> Option<(SMatrix<f64, N, N>, Vec<usize>)> {
+    pub fn lupdecompose(&self) -> Option<(SMatrix<f64, N, N>, Vec<usize>)>
+    where
+        T: Signed,
+    {
         let mut a: SMatrix<f64, N, N> = SMatrix::new(f64::default());
         for rs in a.iter_mut() {
             for es in rs.iter_mut() {
@@ -133,7 +137,10 @@ where
         }
         Some((a, p))
     }
-    fn det_approx(&self) -> f64 {
+    fn det_approx(&self) -> f64
+    where
+        T: Signed,
+    {
         if let Some((mat, p)) = self.lupdecompose() {
             let mut det = mat[0][0];
             for i in 1..N {
@@ -150,7 +157,7 @@ where
     }
     pub fn det(&self) -> f64
     where
-        T: Copy,
+        T: Copy + Signed,
     {
         if N < 4 {
             match {
