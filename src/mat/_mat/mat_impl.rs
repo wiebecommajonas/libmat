@@ -249,13 +249,16 @@ where
     where
         T: sign::Signed + PartialOrd + Display + cast::ToPrimitive,
     {
+        if self.row_count() != self.col_count() {
+            panic!("Matrix is not a square.");
+        }
+
         if let Some((mat, p)) = self.lupdecompose() {
             let mut det = mat.matrix[0];
-            println!("{}", mat.dims.get_cols());
-            for i in 1..mat.dims.get_cols() {
-                det = det * mat.matrix[i * mat.dims.get_cols() + i];
+            for i in 1..mat.col_count() {
+                det = det * mat.matrix[i * mat.col_count() + i];
             }
-            if (p[mat.dims.get_rows()] - mat.dims.get_rows()) % 2 == 0 {
+            if (p[mat.row_count()] - mat.row_count()) % 2 == 0 {
                 det
             } else {
                 -det
