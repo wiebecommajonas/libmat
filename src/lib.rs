@@ -31,6 +31,6 @@
 #![doc(html_logo_url = "../logo.png")]
 #![doc(html_no_source)]
 
-// pub mod err;
+pub mod err;
 mod macros;
 pub mod mat;

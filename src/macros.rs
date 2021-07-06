@@ -63,7 +63,7 @@ macro_rules! smatrix {
 }
 
 #[macro_export]
-/// Creates a new [Vector](struct.Vector.html).
+/// Creates a new [Vector](Vector).
 macro_rules! vector {
     ( $( $x:expr ),+ $(,)? ) => {{
         Vector::from(vec![$($x),+])

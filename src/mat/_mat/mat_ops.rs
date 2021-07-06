@@ -1,6 +1,50 @@
+// use crate::err::DimensionError;
 use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
+
+// impl Matrix<i64> {
+//     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+//     #[target_feature(enable = "avx2")]
+//     pub unsafe fn add_assign_avx2(&mut self, rhs: Matrix<i64>) {
+//         #[cfg(target_arch = "x86")]
+//         use std::arch::x86::{__m256i, _mm256_add_epi64, _mm256_set_epi64x};
+//         #[cfg(target_arch = "x86_64")]
+//         use std::arch::x86_64::{__m256i, _mm256_add_epi64, _mm256_set_epi64x};
+
+//         const INTS_PER_MM: usize = std::mem::size_of::<__m256i>() / std::mem::size_of::<i64>();
+
+//         for i in 0..self.row_count() {
+//             let (head, middle, tail) = self[i].align_to_mut::<__m256i>();
+//             let head_len = head.len();
+
+//             add_slices(head, &rhs[i][..head_len]);
+
+//             let middle_add_chunks =
+//                 rhs[i][head_len..(head_len + middle.len() * INTS_PER_MM)].chunks(INTS_PER_MM);
+//             for (row_data, add_data) in middle.iter_mut().zip(middle_add_chunks) {
+//                 let add_mm = _mm256_set_epi64x(add_data[0], add_data[1], add_data[2], add_data[3]);
+//                 *row_data = _mm256_add_epi64(*row_data, add_mm);
+//             }
+
+//             add_slices(tail, &rhs[i][(head_len + middle.len() * INTS_PER_MM)..]);
+//         }
+
+//         fn add_slices(a: &mut [i64], b: &[i64]) {
+//             if a.len() >= 1 {
+//                 a[0] += b[0];
+//             }
+//             if a.len() >= 2 {
+//                 a[1] += b[1];
+//             }
+//             if a.len() >= 3 {
+//                 a[2] += b[2];
+//             }
+//         }
+//     }
+// }
 
 /// Matrices can be added by adding their references. Both matrices need to have the same dimensions.
 ///
@@ -22,22 +66,22 @@ where
         if self.dims != rhs.dims {
             panic!("Dimensions of matrices do not match.");
         } else {
-            let mut res = Matrix::new(self.dims.get_rows(), self.dims.get_cols(), T::zero());
-            for i in 0..self.matrix.len() {
-                res.matrix[i] = self.matrix[i] + rhs.matrix[i];
-            }
-            res
+            let mut result_matrix = self.clone();
+            result_matrix += rhs;
+            result_matrix
         }
     }
 }
 
 impl<T> AddAssign<&Matrix<T>> for Matrix<T>
 where
-    T: Add<Output = T> + Zero + One + Clone + Copy,
+    T: Sized + Add<Output = T> + Zero + One + Clone + Copy,
 {
-    fn add_assign(&mut self, mat: &Matrix<T>) {
-        let m = &self.clone() + mat;
-        self.matrix = m.matrix;
+    fn add_assign(&mut self, rhs: &Matrix<T>) {
+        self.matrix
+            .iter_mut()
+            .zip(rhs.matrix.iter())
+            .for_each(|(a, b)| *a = *a + *b);
     }
 }
 
@@ -58,8 +102,9 @@ where
     type Output = Matrix<T>;
 
     fn sub(self, rhs: &Matrix<T>) -> Self::Output {
-        let ref a = rhs * (T::zero() - T::one());
-        self + a
+        let mut result_matrix = self.clone();
+        result_matrix -= rhs;
+        result_matrix
     }
 }
 
@@ -67,9 +112,11 @@ impl<T> SubAssign<&Matrix<T>> for Matrix<T>
 where
     T: Sub<Output = T> + Zero + One + Copy + Clone,
 {
-    fn sub_assign(&mut self, mat: &Matrix<T>) {
-        let m = &self.clone() - mat;
-        self.matrix = m.matrix;
+    fn sub_assign(&mut self, rhs: &Matrix<T>) {
+        self.matrix
+            .iter_mut()
+            .zip(rhs.matrix.iter())
+            .for_each(|(a, b)| *a = *a - *b);
     }
 }
 
@@ -189,11 +236,18 @@ where
     type Output = Matrix<T>;
 
     fn mul(self, scalar: T) -> Self::Output {
-        let mut res_mat = self.clone();
-        for i in 0..res_mat.matrix.len() {
-            res_mat.matrix[i] = res_mat.matrix[i] * scalar;
-        }
-        res_mat
+        let mut result_matrix = self.clone();
+        result_matrix *= scalar;
+        result_matrix
+    }
+}
+
+impl<T> MulAssign<T> for Matrix<T>
+where
+    T: Mul<Output = T> + Copy,
+{
+    fn mul_assign(&mut self, scalar: T) {
+        self.matrix.iter_mut().for_each(|a| *a = *a * scalar);
     }
 }
 
@@ -208,15 +262,26 @@ where
 /// ```
 impl<T> Div<T> for &Matrix<T>
 where
-    T: Div<Output = T> + Zero + One + PartialEq + Copy,
+    T: Div<Output = T> + Zero + PartialEq + Copy,
 {
     type Output = Matrix<T>;
 
-    fn div(self, scalar: T) -> Self::Output {
-        if scalar == T::zero() {
+    fn div(self, divisor: T) -> Self::Output {
+        if divisor == T::zero() {
             panic!("Cannot divide by zero.");
         }
-        self * (T::one() / scalar)
+        let mut result_matrix = self.clone();
+        result_matrix /= divisor;
+        result_matrix
+    }
+}
+
+impl<T> DivAssign<T> for Matrix<T>
+where
+    T: Div<Output = T> + Copy,
+{
+    fn div_assign(&mut self, divisor: T) {
+        self.matrix.iter_mut().for_each(|a| *a = *a / divisor)
     }
 }
 

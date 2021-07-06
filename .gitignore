@@ -1,4 +1,5 @@
 # Cargo
+/benches
 /target
 Cargo.lock
 
