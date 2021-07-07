@@ -1,15 +1,18 @@
+use crate::err::DimensionError;
 use crate::mat::Matrix;
 use num_traits::cast::ToPrimitive;
 use num_traits::identities::{One, Zero};
 use num_traits::ops::inv::Inv;
 use num_traits::sign::Signed;
-use std::fmt::{Display, Formatter, Result};
+use std::fmt;
+use std::fmt::{Display, Formatter};
+use std::result::Result;
 
 impl<T> Display for Matrix<T>
 where
     T: Display,
 {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         for i in 0..self.dims.get_rows() {
             for j in 0..self.dims.get_cols() {
                 let ref n = self.matrix[i * self.dims.get_cols() + j];
@@ -30,7 +33,7 @@ impl<T> Inv for Matrix<T>
 where
     T: One + Zero + Clone + Copy + Signed + PartialOrd + ToPrimitive,
 {
-    type Output = Option<Matrix<f64>>;
+    type Output = Result<Option<Matrix<f64>>, DimensionError>;
 
     /// Invert a matrix.
     ///
@@ -40,16 +43,19 @@ where
     /// # use libmat::mat::Matrix;
     /// # use libmat::matrix;
     /// # use num_traits::ops::inv::Inv;
+    /// # use libmat::err::DimensionError;
+    /// # fn main() -> Result<(), DimensionError> {
     /// let mat_a: Matrix<i32> = matrix!{{0,-1,2},{1,2,0},{2,1,0}};
-    /// let mat_c: Matrix<i32> = matrix!{{1, 2, 3},{3, 2, 1}}; // not a square matrix
+    /// let mat_c: Matrix<i32> = matrix!{{1,0,0},{0,1,0},{0,0,0}}; // not invertible
     /// let mat_b = matrix!{{0.0, -1.0/3.0, 2.0/3.0}, {0.0, 2.0/3.0, -1.0/3.0}, {1.0/2.0, 1.0/3.0, -1.0/6.0}};
-    /// assert_eq!(mat_a.inv(), Some(mat_b));
-    /// assert_eq!(mat_c.inv(), None);
+    /// assert_eq!(mat_a.inv()?, Some(mat_b));
+    /// assert_eq!(mat_c.inv()?, None);
+    /// # Ok(()) }
     /// ```
     fn inv(self) -> Self::Output {
-        if let Some((mat, p)) = self.lupdecompose() {
+        if let Some((mat, p)) = self.lupdecompose()? {
             let dim = mat.row_count();
-            let mut mat_inv = Matrix::<f64>::zero(dim, dim);
+            let mut mat_inv = Matrix::<f64>::zero(dim, dim).unwrap();
             for j in 0..dim {
                 for i in 0..dim {
                     mat_inv[i][j] = {
@@ -73,9 +79,9 @@ where
                 }
             }
             mat_inv.matrix.reverse();
-            Some(mat_inv)
+            Ok(Some(mat_inv))
         } else {
-            None
+            Ok(None)
         }
     }
 }

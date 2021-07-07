@@ -1,233 +1,262 @@
+use crate::err::DimensionError;
 use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
-use std::convert::From;
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign};
+use std::fmt::Display;
+use std::ops::{
+    Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
-/// Vectors can be added by adding their references.
+/// Elementwise addition. Both vectors need to have the same length.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Vector;
 /// # use libmat::vector;
+/// # use libmat::err::DimensionError;
+/// # fn main () -> Result<(), DimensionError> {
 /// let vec_a = vector![1, 2, 3];
 /// let vec_b = vector![3, 2, 1];
-/// assert_eq!(&vec_a + &vec_b, Vector::new(3, 4));
+/// assert_eq!((vec_a + vec_b)?, Vector::new(3, 4));
+/// # Ok(()) }
 /// ```
-impl<T> Add for &Vector<T>
+impl<T> Add for Vector<T>
 where
     T: Add<Output = T> + Clone + Copy,
 {
-    type Output = Vector<T>;
+    type Output = Result<Vector<T>, DimensionError>;
 
-    fn add(self, vector: &Vector<T>) -> Self::Output {
-        if self.dims != vector.dims {
-            panic!("The Vectors need to have the same dimensions.");
+    fn add(self, vector: Vector<T>) -> Self::Output {
+        if self.len() != vector.len() {
+            Err(DimensionError::NoMatch(
+                self.dims,
+                vector.dims,
+                "add".to_owned(),
+            ))
         } else {
-            let mut e = self.clone().entries;
-            for i in 0..self.entries.len() {
-                e[i] = e[i] + vector[i];
-            }
-            Vector::<T> {
-                dims: self.dims,
-                entries: e,
-            }
+            let mut result_vector = self.clone();
+            result_vector += vector;
+            Ok(result_vector)
         }
     }
 }
 
-impl<T> AddAssign<&Vector<T>> for Vector<T>
+impl<T> AddAssign<Vector<T>> for Vector<T>
 where
     T: Add<Output = T> + Clone + Copy,
 {
-    fn add_assign(&mut self, vector: &Vector<T>) {
-        let v = &self.clone() + vector;
-        self.entries = v.entries;
+    fn add_assign(&mut self, vector: Vector<T>) {
+        if self.len() != vector.len() {
+            panic!("Dimensions do not match");
+        }
+        self.iter_mut()
+            .zip(vector.iter())
+            .for_each(|(a, b)| *a = *a + *b);
     }
 }
 
-/// Vectors can be subtracted by subtracting theri references.
+/// Elementwise subtraction. Both vectors need to have the same length.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Vector;
 /// # use libmat::vector;
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
 /// let vec_a = vector![1_i32, 2, 3];
 /// let vec_b = vector![3_i32, 2, 1];
-/// assert_eq!(&vec_a - &vec_b, vector![-2, 0, 2]);
+/// assert_eq!((vec_a - vec_b)?, vector![-2, 0, 2]);
+/// # Ok(()) }
 /// ```
-impl<T> Sub for &Vector<T>
+impl<T> Sub for Vector<T>
 where
     T: Sub<Output = T> + Zero + One + Copy + Clone,
 {
-    type Output = Vector<T>;
+    type Output = Result<Vector<T>, DimensionError>;
 
-    fn sub(self, vector: &Vector<T>) -> Self::Output {
-        self + &(vector * (T::zero() - T::one()))
+    fn sub(self, vector: Vector<T>) -> Self::Output {
+        if self.len() != vector.len() {
+            Err(DimensionError::NoMatch(
+                self.dims,
+                vector.dims,
+                "subtract".to_owned(),
+            ))
+        } else {
+            let mut result_vector = self.clone();
+            result_vector -= vector;
+            Ok(result_vector)
+        }
     }
 }
 
-impl<T> SubAssign<&Vector<T>> for Vector<T>
+impl<T> SubAssign<Vector<T>> for Vector<T>
 where
     T: Sub<Output = T> + Zero + One + Copy + Clone,
 {
-    fn sub_assign(&mut self, vector: &Vector<T>) {
-        let v = &self.clone() - vector;
-        self.entries = v.entries;
+    fn sub_assign(&mut self, vector: Vector<T>) {
+        if self.len() != vector.len() {
+            panic!("Dimensions do not match")
+        }
+        self.iter_mut()
+            .zip(vector.iter())
+            .for_each(|(a, b)| *a = *a - *b);
     }
 }
 
-impl<T> Neg for &Vector<T>
+impl<T> Neg for Vector<T>
 where
-    T: Sub<Output = T> + One + Zero + Clone + Copy,
+    T: Neg<Output = T> + One + Zero + Copy,
 {
     type Output = Vector<T>;
 
     fn neg(self) -> Self::Output {
-        &Vector::new(self.get_size(), T::zero()) - &self.clone()
+        let mut result_vector = self.clone();
+        result_vector.iter_mut().for_each(|a| *a = -(*a));
+        result_vector
     }
 }
 
-/// Vectors can be multpilied by multiplying their references.
+/// Dot product of two vectors. Both vectors need to have the same length.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Vector;
 /// # use libmat::vector;
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
 /// let vec_a = Vector::new(4, 3);
 /// let vec_b = vector![5, 6, 7, 8];
-/// assert_eq!(&vec_a * &vec_b, 78);
-/// assert_eq!(&vec_b * &vec_a, 78);
+/// assert_eq!((vec_a.clone() * vec_b.clone())?, 78);
+/// assert_eq!((vec_b * vec_a)?, 78);
+/// # Ok(()) }
 /// ```
-impl<T> Mul for &Vector<T>
+impl<T> Mul for Vector<T>
 where
-    T: Mul<Output = T> + Clone + Copy + Zero,
+    T: Mul<Output = T> + Copy + Zero + std::iter::Sum,
 {
-    type Output = T;
+    type Output = Result<T, DimensionError>;
 
-    fn mul(self, vec: &Vector<T>) -> Self::Output {
-        if self.entries.len() != vec.entries.len() {
-            panic!("Vectors need to be the same length.");
+    fn mul(self, vector: Vector<T>) -> Self::Output {
+        if self.len() != vector.len() {
+            Err(DimensionError::NoMatch(
+                self.dims,
+                vector.dims,
+                "multiply".to_owned(),
+            ))
+        } else {
+            let sum = self.iter().zip(vector.iter()).map(|(a, b)| *a * *b).sum();
+            Ok(sum)
         }
-        let mut sum: T = T::zero();
-        for i in 0..self.entries.len() {
-            sum = sum + (self[i] * vec[i]);
-        }
-        sum
     }
 }
 
-/// Vectors can also be multiplied with matrices. The result will be a vector.
+/// Vectors can be multiplied with matrices. The result will be a vector.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::{Matrix, Vector};
 /// # use libmat::{matrix, vector};
-/// let mat_a = Matrix::<u32>::one(4);
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a = Matrix::<u32>::one(4)?;
 /// let mat_b = matrix!{1, 2, 3; 4, 4, 3; 2, 1, 3; 4, 1, 2};
 /// let vec_a = vector![4, 5, 6, 7].to_row_vector();
 /// let vec_b = vector![64, 41, 59].to_row_vector();
-/// assert_eq!(&vec_a * &mat_a, vec_a);
-/// assert_eq!(&vec_a * &mat_b, vec_b);
+/// assert_eq!((vec_a.clone() * mat_a)?, vec_a);
+/// assert_eq!((vec_a * mat_b)?, vec_b);
+/// # Ok(()) }
 /// ```
-impl<T> Mul<&Matrix<T>> for &Vector<T>
+impl<T> Mul<Matrix<T>> for Vector<T>
 where
-    T: One + Zero + Copy + Clone,
+    T: One + Zero + Clone + Copy + std::iter::Sum + Display,
+    Vector<T>: Into<Matrix<T>>,
 {
-    type Output = Vector<T>;
+    type Output = Result<Vector<T>, DimensionError>;
 
-    fn mul(self, mat: &Matrix<T>) -> Self::Output {
-        let vec: Vector<T> = self.clone();
-        let mat_v: Matrix<T> = vec.into();
-        let res = &mat_v * mat;
-        res.into()
+    fn mul(self, mat: Matrix<T>) -> Self::Output {
+        let vector: Vector<T> = self.clone();
+        let mat_v: Matrix<T> = vector.into();
+        println!("{}\n\n{}", mat_v, mat);
+        let res = (mat_v * mat)?;
+        println!("\n{}", res);
+        Ok(res.into())
     }
 }
 
-/// Vectors can be scaled by scaling a reference to a vector.
+/// Elementwise multiplication.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Vector;
 /// let vec_a = Vector::new(3, 1);
-/// assert_eq!(&vec_a * 2, Vector::new(3, 2));
+/// assert_eq!(vec_a * 2, Vector::new(3, 2));
 /// ```
-impl<T> Mul<T> for &Vector<T>
+impl<T> Mul<T> for Vector<T>
 where
-    T: Mul<Output = T> + Clone + Zero + Copy,
+    T: Mul<Output = T> + Copy,
 {
     type Output = Vector<T>;
 
-    fn mul(self, scalar: T) -> Self::Output {
-        let mut vec = Vec::<T>::new();
-        for i in 0..self.entries.len() {
-            vec.push(self[i] * scalar);
-        }
-        Vector::from(vec)
+    fn mul(self, rhs: T) -> Self::Output {
+        let mut result_vector = self.clone();
+        result_vector *= rhs;
+        result_vector
     }
 }
 
-/// Dividing a vector by a number is the same a multiplying by its inverse.
+impl<T> MulAssign<T> for Vector<T>
+where
+    T: Mul<Output = T> + Copy,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        self.iter_mut().for_each(|a| *a = *a * rhs);
+    }
+}
+
+/// Elementwise division. Same as multiplying with the inverse.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Vector;
 /// let vec_a = Vector::new(3, 1_f32);
-/// assert_eq!(&vec_a / 2.0, Vector::new(3, 0.5));
+/// assert_eq!(vec_a / 2.0, Vector::new(3, 0.5));
 /// ```
-impl<T> Div<T> for &Vector<T>
+impl<T> Div<T> for Vector<T>
 where
-    T: Div<Output = T> + Mul<Output = T> + Clone + Zero + Copy + One,
+    T: Div<Output = T> + Copy,
 {
     type Output = Vector<T>;
 
     fn div(self, divisor: T) -> Self::Output {
-        self * (T::one() / divisor)
+        let mut result_matrix = self.clone();
+        result_matrix /= divisor;
+        result_matrix
     }
 }
 
-/// Indexing a vectors returns the corresponding entry.
-///
-/// # Example
-///
-/// ```
-/// # use libmat::mat::Vector;
-/// # use libmat::vector;
-/// let vec_a = vector![1, 2, 3];
-/// assert_eq!(vec_a[0], 1);
-/// assert_eq!(vec_a[1], 2);
-/// assert_eq!(vec_a[2], 3);
-/// ```
-impl<T> Index<usize> for Vector<T> {
-    type Output = T;
-
-    fn index(&self, idx: usize) -> &Self::Output {
-        &self.entries[idx]
+impl<T> DivAssign<T> for Vector<T>
+where
+    T: Div<Output = T> + Copy,
+{
+    fn div_assign(&mut self, rhs: T) {
+        self.iter_mut().for_each(|a| *a = *a / rhs)
     }
 }
 
-/// Single entries of a vector can be manipulated by mutating an indexed vector.
-///
-/// # Example
-///
-/// ```
-/// # use libmat::mat::Vector;
-/// # use libmat::vector;
-/// let mut vec_a = Vector::new(3, 1);
-/// vec_a[1] = 2;
-/// vec_a[2] = 3;
-/// assert_eq!(vec_a[0], 1);
-/// assert_eq!(vec_a[1], 2);
-/// assert_eq!(vec_a[2], 3);
-/// assert_eq!(vec_a, vector![1, 2, 3]);
-/// ```
-impl<T> IndexMut<usize> for Vector<T> {
-    fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-        &mut self.entries[idx]
+impl<T> Deref for Vector<T> {
+    type Target = [T];
+    fn deref(&self) -> &Self::Target {
+        &self.entries
+    }
+}
+
+impl<T> DerefMut for Vector<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.entries
     }
 }

@@ -99,22 +99,31 @@ where
 
 impl<T, const L: usize, const M: usize, const N: usize> Mul<SMatrix<T, M, N>> for SMatrix<T, L, M>
 where
-    T: Add<Output = T> + Mul<Output = T> + One + Copy,
+    T: Add<Output = T> + Mul<Output = T> + One + Zero + Copy + std::iter::Sum,
 {
     type Output = SMatrix<T, L, N>;
 
     fn mul(self, rhs: SMatrix<T, M, N>) -> Self::Output {
-        let mut res = SMatrix::<T, L, N>::new(T::one());
-        for i in 0..self.len() {
-            for j in 0..rhs[0].len() {
-                let mut sum = self[i][0] * self[0][j];
-                for k in 1..self[0].len() {
-                    sum = sum + self[i][k] * rhs[k][j];
-                }
-                res[i][j] = sum;
-            }
-        }
-        res
+        let r_rhs = rhs.transpose();
+        let mut result_matrix = SMatrix::<T, L, N>::new(T::one());
+
+        result_matrix
+            .iter_mut()
+            .zip(self.iter())
+            .for_each(|(row_mut, row_self)| {
+                row_mut
+                    .iter_mut()
+                    .zip(r_rhs.iter())
+                    .for_each(|(entry_mut, col_rhs)| {
+                        *entry_mut = row_self
+                            .iter()
+                            .zip(col_rhs.iter())
+                            .map(|(a, b)| *a * *b)
+                            .sum();
+                    })
+            });
+
+        result_matrix
     }
 }
 

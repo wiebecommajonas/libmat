@@ -18,7 +18,7 @@ macro_rules! matrix {
                 )+
             )+
             matrix_cols = matrix_vec.len()/matrix_rows;
-            Matrix::from_vec(matrix_rows, matrix_cols, matrix_vec)
+            Matrix::from_vec(matrix_rows, matrix_cols, matrix_vec).unwrap()
         }
     };
     ( $( $( $x:expr ),+ $(,)? );+ $(;)? ) => {
@@ -33,7 +33,7 @@ macro_rules! matrix {
                 )+
             )+
             matrix_cols = matrix_vec.len()/matrix_rows;
-            Matrix::from_vec(matrix_rows, matrix_cols, matrix_vec)
+            Matrix::from_vec(matrix_rows, matrix_cols, matrix_vec).unwrap()
         }
     };
 }

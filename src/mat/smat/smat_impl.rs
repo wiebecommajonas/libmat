@@ -27,7 +27,7 @@ where
     pub fn new(init: T) -> SMatrix<T, M, N> {
         if M > 0 && N > 0 {
             SMatrix::<T, M, N> {
-                data: [[init; N]; M],
+                data: Box::new([[init; N]; M]),
             }
         } else {
             panic!("NOOO")
@@ -190,7 +190,7 @@ where
     /// Creates a diagonal matrix with every diagonal entry havong the value of `init`.
     pub fn diag(init: T) -> SMatrix<T, N, N>
     where
-        T: Copy + One + Zero,
+        T: Copy + One + Zero + std::iter::Sum,
     {
         SMatrix::<T, N, N>::one() * init
     }
@@ -198,7 +198,7 @@ where
     /// Creates a diagonal matrix with initial entries specified in `entries`.
     pub fn diag_with(entries: &[T]) -> SMatrix<T, N, N>
     where
-        T: One + Copy + Zero,
+        T: One + Copy + Zero + std::iter::Sum,
     {
         if entries.len() > N || entries.len() < N {
             panic!("Input slice does not have the correct length.");

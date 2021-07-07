@@ -1,9 +1,13 @@
 // use crate::err::DimensionError;
-use crate::mat::{Matrix, Vector};
+use crate::{
+    err::DimensionError,
+    mat::{Matrix, Vector},
+};
 use num_traits::identities::{One, Zero};
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
+use std::result::Result;
 
 // impl Matrix<i64> {
 //     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -46,38 +50,48 @@ use std::ops::{
 //     }
 // }
 
-/// Matrices can be added by adding their references. Both matrices need to have the same dimensions.
+/// Elementwise addition. Both matrices need to have the same dimensions.
 ///
 /// # Example
 /// ```
 /// # use libmat::mat::Matrix;
-/// let mat_a = Matrix::one(3);
-/// let mat_b = Matrix::one(3);
-/// let mat_c = Matrix::diag(3, 2);
-/// assert_eq!(&mat_a + &mat_b, mat_c)
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a = Matrix::one(3)?;
+/// let mat_b = Matrix::one(3)?;
+/// let mat_c = Matrix::diag(3, 2)?;
+/// assert_eq!((mat_a + mat_b)?, mat_c);
+/// # Ok(()) }
 /// ```
-impl<T> Add for &Matrix<T>
+impl<T> Add for Matrix<T>
 where
     T: Add<Output = T> + Zero + One + Clone + Copy,
 {
-    type Output = Matrix<T>;
+    type Output = Result<Matrix<T>, DimensionError>;
 
-    fn add(self, rhs: &Matrix<T>) -> Self::Output {
+    fn add(self, rhs: Matrix<T>) -> Self::Output {
         if self.dims != rhs.dims {
-            panic!("Dimensions of matrices do not match.");
+            Err(DimensionError::NoMatch(
+                self.dims,
+                rhs.dims,
+                "add".to_owned(),
+            ))
         } else {
             let mut result_matrix = self.clone();
             result_matrix += rhs;
-            result_matrix
+            Ok(result_matrix)
         }
     }
 }
 
-impl<T> AddAssign<&Matrix<T>> for Matrix<T>
+impl<T> AddAssign<Matrix<T>> for Matrix<T>
 where
     T: Sized + Add<Output = T> + Zero + One + Clone + Copy,
 {
-    fn add_assign(&mut self, rhs: &Matrix<T>) {
+    fn add_assign(&mut self, rhs: Matrix<T>) {
+        if self.dims != rhs.dims {
+            panic!("Dimensions do not match.");
+        }
         self.matrix
             .iter_mut()
             .zip(rhs.matrix.iter())
@@ -85,34 +99,48 @@ where
     }
 }
 
-/// Matrices can be subtracted by subtracting their references. Both matrices need to have the same dimensions.
+/// Elementwise subtraction. Both matrices need to have the same dimensions.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Matrix;
-/// let mat_a: Matrix<i32> = Matrix::one(3);
-/// let mat_b: Matrix<i32> = Matrix::one(3);
-/// assert_eq!(&mat_a - &mat_b, Matrix::zero(3, 3));
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a: Matrix<i32> = Matrix::one(3)?;
+/// let mat_b: Matrix<i32> = Matrix::one(3)?;
+/// assert_eq!((mat_a - mat_b)?, Matrix::zero(3, 3)?);
+/// # Ok(()) }
 /// ```
-impl<T> Sub for &Matrix<T>
+impl<T> Sub for Matrix<T>
 where
     T: Sub<Output = T> + One + Zero + Clone + Copy,
 {
-    type Output = Matrix<T>;
+    type Output = Result<Matrix<T>, DimensionError>;
 
-    fn sub(self, rhs: &Matrix<T>) -> Self::Output {
-        let mut result_matrix = self.clone();
-        result_matrix -= rhs;
-        result_matrix
+    fn sub(self, rhs: Matrix<T>) -> Self::Output {
+        if self.dims != rhs.dims {
+            Err(DimensionError::NoMatch(
+                self.dims,
+                rhs.dims,
+                "add".to_owned(),
+            ))
+        } else {
+            let mut result_matrix = self.clone();
+            result_matrix -= rhs;
+            Ok(result_matrix)
+        }
     }
 }
 
-impl<T> SubAssign<&Matrix<T>> for Matrix<T>
+impl<T> SubAssign<Matrix<T>> for Matrix<T>
 where
     T: Sub<Output = T> + Zero + One + Copy + Clone,
 {
-    fn sub_assign(&mut self, rhs: &Matrix<T>) {
+    fn sub_assign(&mut self, rhs: Matrix<T>) {
+        if self.dims != rhs.dims {
+            panic!("Dimensions do not match.");
+        }
         self.matrix
             .iter_mut()
             .zip(rhs.matrix.iter())
@@ -120,7 +148,7 @@ where
     }
 }
 
-/// A Matrix can be negated by negating a reference to a matrix. This negates every entry of the matrix.
+/// Elementwise negation. This negates every entry of the matrix.
 ///
 /// # Example
 ///
@@ -129,69 +157,100 @@ where
 /// # use libmat::matrix;
 /// let mat_a: Matrix<i32> = matrix!{1, 2; 3, 4};
 /// let mat_b: Matrix<i32> = matrix!{-1, -2; -3, -4};
-/// assert_eq!(-&mat_a, mat_b);
+/// assert_eq!(-mat_a, mat_b);
 /// ```
-impl<T> Neg for &Matrix<T>
+impl<T> Neg for Matrix<T>
 where
-    T: Neg + One + Zero + Copy,
-    Vec<T>: std::iter::FromIterator<<T as std::ops::Neg>::Output>,
+    T: Neg<Output = T> + One + Zero + Copy,
 {
     type Output = Matrix<T>;
 
     fn neg(self) -> Self::Output {
-        Matrix::from_vec(
-            self.dims.get_rows(),
-            self.dims.get_cols(),
-            self.matrix.iter().map(|&x| -x).collect(),
-        )
+        let mut result_matrix = self.clone();
+        result_matrix.matrix.iter_mut().for_each(|x| *x = -(*x));
+        result_matrix
     }
 }
 
-/// Matrices can be multiplied by multiplying their references.
-/// This is matrix multiplicaiton as described in
+/// Matrix multiplicaiton as described in
 /// [Matrix multipication](https://en.wikipedia.org/wiki/Matrix_multiplication),
-/// so the left matrix needs to have the same amount of columns as the right has rows.
+/// so the left matrix needs to have the same amount of columns as the right one has rows.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Matrix;
 /// # use libmat::matrix;
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
 /// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8};
 /// let mat_b = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9; 10, 11, 12};
 /// let mat_c = matrix!{70, 80, 90; 158, 184, 210};
-/// assert_eq!(&mat_a * &mat_b, mat_c);
+/// assert_eq!((mat_a * mat_b)?, mat_c);
+/// # Ok(()) }
 /// ```
-impl<T> Mul for &Matrix<T>
+impl<T> Mul for Matrix<T>
 where
-    T: Zero + One + Clone + Copy,
+    T: Zero + One + Copy + std::iter::Sum,
 {
-    type Output = Matrix<T>;
+    type Output = Result<Matrix<T>, DimensionError>;
 
-    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
-        let a = self.clone();
-        let b = rhs.clone();
-        if a.dims.get_cols() != b.dims.get_rows() {
-            panic!("Dimensions of matrices should be 'm x n' and 'n x k'");
+    // fn mul(self, rhs: &Matrix<T>) -> Self::Output {
+    //     let a = self.clone();
+    //     let b = rhs.clone();
+    //     if a.dims.get_cols() != b.dims.get_rows() {
+    //         panic!("Dimensions of matrices should be 'm x n' and 'n x k'");
+    //     } else {
+    //         let mut res: Matrix<T> = Matrix::new(a.dims.get_rows(), b.dims.get_cols(), T::zero());
+    //         for i in 0..a.dims.get_rows() {
+    //             for j in 0..b.dims.get_cols() {
+    //                 let mut sum = T::zero();
+    //                 for k in 0..a.dims.get_cols() {
+    //                     sum = sum
+    //                         + a.matrix[i * a.dims.get_cols() + k]
+    //                             * b.matrix[k * b.dims.get_cols() + j];
+    //                 }
+    //                 res.matrix[i * res.dims.get_cols() + j] = sum;
+    //             }
+    //         }
+    //         res
+    //     }
+    // }
+
+    fn mul(self, rhs: Matrix<T>) -> Self::Output {
+        if self.col_count() != rhs.row_count() {
+            Err(DimensionError::NoMatch(
+                self.dims,
+                rhs.dims,
+                "multiply".to_owned(),
+            ))
         } else {
-            let mut res: Matrix<T> = Matrix::new(a.dims.get_rows(), b.dims.get_cols(), T::zero());
-            for i in 0..a.dims.get_rows() {
-                for j in 0..b.dims.get_cols() {
-                    let mut sum = T::zero();
-                    for k in 0..a.dims.get_cols() {
-                        sum = sum
-                            + a.matrix[i * a.dims.get_cols() + k]
-                                * b.matrix[k * b.dims.get_cols() + j];
-                    }
-                    res.matrix[i * res.dims.get_cols() + j] = sum;
-                }
-            }
-            res
+            let r_rhs = rhs.transpose();
+            let mut result_matrix = Matrix::<T>::zero(self.row_count(), rhs.col_count()).unwrap();
+
+            result_matrix
+                .matrix
+                .chunks_mut(result_matrix.dims.get_cols())
+                .zip(self.matrix.chunks(self.col_count()))
+                .for_each(|(row_mut, row_self)| {
+                    row_mut
+                        .iter_mut()
+                        .zip(r_rhs.matrix.chunks(r_rhs.col_count()))
+                        .for_each(|(entry_mut, col_rhs)| {
+                            *entry_mut = row_self
+                                .iter()
+                                .zip(col_rhs.iter())
+                                .map(|(a, b)| *a * *b)
+                                .sum();
+                        })
+                });
+
+            Ok(result_matrix)
         }
     }
 }
 
-/// Matrices can be multiplied with Vectors by multiplying their references.
+/// Matrices can be multiplied with Vectors.
 /// The dimensions of the two objects need to match like with matrix multiplication.
 ///
 /// # Example
@@ -199,22 +258,24 @@ where
 /// ```
 /// # use libmat::mat::{Matrix, Vector};
 /// # use libmat::{matrix, vector};
-/// let v_a = vector![1, 2, 3];
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let v_a = vector![1, 2, 3].to_row_vector();
 /// let mat_a = matrix!{1, 2, 3; 4, 5, 6; 7, 8, 9};
 /// let v_b = vector![30, 36, 42].to_row_vector();
-/// assert_eq!(&v_a.to_row_vector() * &mat_a, v_b);
+/// assert_eq!((v_a * mat_a)?, v_b);
+/// # Ok(()) }
 /// ```
-impl<T> Mul<&Vector<T>> for &Matrix<T>
+impl<T> Mul<Vector<T>> for Matrix<T>
 where
-    T: One + Zero + Copy + Clone,
+    T: One + Zero + Copy + std::iter::Sum,
 {
-    type Output = Vector<T>;
+    type Output = Result<Vector<T>, DimensionError>;
 
-    fn mul(self, vec: &Vector<T>) -> Self::Output {
-        let v = vec.clone();
-        let mat_v: Matrix<T> = v.into();
-        let res = self * &mat_v;
-        res.into()
+    fn mul(self, vec: Vector<T>) -> Self::Output {
+        let mat_v: Matrix<T> = vec.into();
+        let res = (self * mat_v)?;
+        Ok(res.into())
     }
 }
 
@@ -227,9 +288,9 @@ where
 /// # use libmat::matrix;
 /// let mat_a = matrix!{1, 2; 3, 4};
 /// let mat_b = matrix!{2, 4; 6, 8};
-/// assert_eq!(&mat_a * 2, mat_b);
+/// assert_eq!(mat_a * 2, mat_b);
 /// ```
-impl<T> Mul<T> for &Matrix<T>
+impl<T> Mul<T> for Matrix<T>
 where
     T: Mul<Output = T> + Copy,
 {
@@ -251,25 +312,25 @@ where
     }
 }
 
-/// Dividing a matrix is the same as scaling it with the inverse of the divisor.
+/// Elementwise division. Same as multiplying with the inverse.
 ///
 /// # Example
 ///
 /// ```
 /// # use libmat::mat::Matrix;
-/// let mat_a = Matrix::new(3, 3, 1_f32);
-/// assert_eq!(&mat_a / 2_f32, &mat_a * 0.5_f32);
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a = Matrix::new(3, 3, 1_f32)?;
+/// assert_eq!(mat_a.clone() / 2_f32, mat_a * 0.5_f32);
+/// # Ok(()) }
 /// ```
-impl<T> Div<T> for &Matrix<T>
+impl<T> Div<T> for Matrix<T>
 where
     T: Div<Output = T> + Zero + PartialEq + Copy,
 {
     type Output = Matrix<T>;
 
     fn div(self, divisor: T) -> Self::Output {
-        if divisor == T::zero() {
-            panic!("Cannot divide by zero.");
-        }
         let mut result_matrix = self.clone();
         result_matrix /= divisor;
         result_matrix
@@ -291,11 +352,14 @@ where
 ///
 /// ```
 /// # use libmat::mat::Matrix;
-/// let mat = Matrix::<u32>::one(3);
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat = Matrix::<u32>::one(3)?;
 /// assert_eq!(mat[0], vec![1_u32, 0, 0]);
 /// assert_eq!(mat[0][0], 1);
 /// assert_eq!(mat[1][1], 1);
 /// assert_eq!(mat[2][1], 0);
+/// # Ok(()) }
 /// ```
 impl<T> Index<usize> for Matrix<T> {
     type Output = [T];
@@ -314,11 +378,14 @@ impl<T> Index<usize> for Matrix<T> {
 ///
 /// ```
 /// # use libmat::mat::Matrix;
-/// let mut mat = Matrix::<u32>::zero(3, 3);
+/// # use libmat::err::DimensionError;
+/// # fn main() -> Result<(), DimensionError> {
+/// let mut mat = Matrix::<u32>::zero(3, 3)?;
 /// mat[0][0] = 1;
 /// mat[1][1] = 1;
 /// mat[2][2] = 1;
-/// assert_eq!(mat, Matrix::<u32>::one(3));
+/// assert_eq!(mat, Matrix::<u32>::one(3)?);
+/// # Ok(()) }
 /// ```
 impl<T> IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {

@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter, Result};
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Dimensions {
     rows: usize,
@@ -19,5 +21,12 @@ impl Dimensions {
     }
     pub fn get_cols(&self) -> usize {
         self.cols
+    }
+}
+
+impl Display for Dimensions {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}x{}", self.rows, self.cols)?;
+        Ok(())
     }
 }

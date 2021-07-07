@@ -31,13 +31,15 @@ where
 
 impl<T, const M: usize, const N: usize> From<[[T; N]; M]> for SMatrix<T, M, N> {
     fn from(arr: [[T; N]; M]) -> Self {
-        SMatrix::<T, M, N> { data: arr }
+        SMatrix::<T, M, N> {
+            data: Box::new(arr),
+        }
     }
 }
 
 impl<T, const N: usize> One for SMatrix<T, N, N>
 where
-    T: Add<Output = T> + Copy + Zero + One,
+    T: Add<Output = T> + Copy + Zero + One + std::iter::Sum,
 {
     fn one() -> Self {
         let mut res: SMatrix<T, N, N> = SMatrix::new(T::zero());

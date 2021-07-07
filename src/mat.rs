@@ -1,5 +1,5 @@
 mod _mat;
-mod dims;
+pub mod dims;
 mod smat;
 mod vec;
 use dims::Dimensions;
@@ -34,9 +34,9 @@ pub struct Vector<T> {
 /// mat_a[1] = [1,2,3];
 /// assert_eq!(mat_a, smatrix!{{2,0,0},{1,2,3},{0,0,2}});
 /// ```
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SMatrix<T, const M: usize, const N: usize> {
-    data: [[T; N]; M],
+    data: Box<[[T; N]; M]>,
 }
 
 pub type SColVector<T, const N: usize> = SMatrix<T, N, 1>;

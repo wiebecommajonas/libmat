@@ -1,24 +1,22 @@
+use crate::mat::dims::Dimensions;
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MatrixError {
-    MatrixNotSquare,
     IndexOutOfBounds(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DimensionError {
     InvalidDimensions,
-    NoMatch(usize, usize),
+    InvalidInputDimensions(usize, usize),
+    NoMatch(Dimensions, Dimensions, String),
+    NoSquare,
 }
 
 impl Display for MatrixError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            MatrixError::MatrixNotSquare => write!(
-                f,
-                "The matrix is not a square matrix. Both dimensions need to be the same."
-            )?,
             MatrixError::IndexOutOfBounds(idx) => write!(
                 f,
                 "Tried to access a matrix at index `{}`, which is out of bounds.",
@@ -35,8 +33,14 @@ impl Display for DimensionError {
             DimensionError::InvalidDimensions => {
                 write!(f, "Dimensions with a size of less than 1 are invalid.")?
             }
-            DimensionError::NoMatch(len, bad_len) => {
-                write!(f, "Dimensions do not match the length `{}` of the spedified input. It nedds to be `{}`.", bad_len, len)?
+            DimensionError::NoMatch(dims, bad_dims, op) => {write!(
+                f,
+                "Dimensions of two matrices do not match in the correct way. Cannot {} {} matrix with {} matrix.",
+                op, dims, bad_dims
+            )?}
+            DimensionError::InvalidInputDimensions(input_len, correct_len) => {write!(f, "Invalid input dimensions. Input has length {}, but should have length {}.", input_len, correct_len)?}
+            DimensionError::NoSquare => {
+                write!(f, "Not a square matrix. Rows and cols need to be the same.")?
             }
         }
         Ok(())

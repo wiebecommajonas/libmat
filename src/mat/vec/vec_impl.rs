@@ -1,7 +1,6 @@
 use crate::mat::dims::Dimensions;
 use crate::mat::{Matrix, Vector};
 use num_traits::identities::{One, Zero};
-use std::cmp::min;
 use std::convert::{From, Into};
 
 impl<T> Vector<T>
@@ -47,7 +46,7 @@ where
     T: Zero + One + Copy,
 {
     fn into(self) -> Matrix<T> {
-        Matrix::<T>::from_vec(self.dims.get_rows(), self.dims.get_cols(), self.entries)
+        Matrix::<T>::from_vec(self.dims.get_rows(), self.dims.get_cols(), self.entries).unwrap()
     }
 }
 
@@ -65,7 +64,7 @@ where
 
 impl<T> From<Matrix<T>> for Vector<T> {
     fn from(mat: Matrix<T>) -> Vector<T> {
-        if min(mat.dims.get_rows(), mat.dims.get_cols()) != 1 {
+        if mat.row_count() != 1 && mat.col_count() != 1 {
             panic!("Could not convert matrix into vector.");
         }
         Vector::<T> {
