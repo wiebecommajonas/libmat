@@ -1,7 +1,6 @@
 use crate::mat::dims::Dimensions;
 use crate::mat::{Matrix, Vector};
-use num_traits::identities::{One, Zero};
-use std::convert::{From, Into};
+use std::convert::From;
 
 impl<T> Vector<T>
 where
@@ -41,15 +40,6 @@ where
     }
 }
 
-impl<T> Into<Matrix<T>> for Vector<T>
-where
-    T: Zero + One + Copy,
-{
-    fn into(self) -> Matrix<T> {
-        Matrix::<T>::from_vec(self.dims.get_rows(), self.dims.get_cols(), self.entries).unwrap()
-    }
-}
-
 impl<T> From<Vec<T>> for Vector<T>
 where
     T: Clone,
@@ -62,7 +52,10 @@ where
     }
 }
 
-impl<T> From<Matrix<T>> for Vector<T> {
+impl<T> From<Matrix<T>> for Vector<T>
+where
+    T: Clone,
+{
     fn from(mat: Matrix<T>) -> Vector<T> {
         if mat.row_count() != 1 && mat.col_count() != 1 {
             panic!("Could not convert matrix into vector.");

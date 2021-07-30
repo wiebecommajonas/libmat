@@ -1,6 +1,6 @@
 use crate::err::DimensionError;
 use crate::mat::{Matrix, Vector};
-use num_traits::identities::{One, Zero};
+use num_traits::{One, Zero};
 use std::fmt::Display;
 use std::ops::{
     Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -22,7 +22,7 @@ use std::ops::{
 /// ```
 impl<T> Add for Vector<T>
 where
-    T: Add<Output = T> + Clone + Copy,
+    T: AddAssign + Clone,
 {
     type Output = Result<Vector<T>, DimensionError>;
 
@@ -34,7 +34,7 @@ where
                 "add".to_owned(),
             ))
         } else {
-            let mut result_vector = self.clone();
+            let mut result_vector = self;
             result_vector += vector;
             Ok(result_vector)
         }
@@ -43,7 +43,7 @@ where
 
 impl<T> AddAssign<Vector<T>> for Vector<T>
 where
-    T: Add<Output = T> + Clone + Copy,
+    T: AddAssign + Clone,
 {
     fn add_assign(&mut self, vector: Vector<T>) {
         if self.len() != vector.len() {
@@ -51,7 +51,7 @@ where
         }
         self.iter_mut()
             .zip(vector.iter())
-            .for_each(|(a, b)| *a = *a + *b);
+            .for_each(|(a, b)| *a += b.clone());
     }
 }
 
@@ -71,7 +71,7 @@ where
 /// ```
 impl<T> Sub for Vector<T>
 where
-    T: Sub<Output = T> + Zero + One + Copy + Clone,
+    T: SubAssign + Zero + One + Clone,
 {
     type Output = Result<Vector<T>, DimensionError>;
 
@@ -83,7 +83,7 @@ where
                 "subtract".to_owned(),
             ))
         } else {
-            let mut result_vector = self.clone();
+            let mut result_vector = self;
             result_vector -= vector;
             Ok(result_vector)
         }
@@ -92,7 +92,7 @@ where
 
 impl<T> SubAssign<Vector<T>> for Vector<T>
 where
-    T: Sub<Output = T> + Zero + One + Copy + Clone,
+    T: SubAssign + Zero + One + Clone,
 {
     fn sub_assign(&mut self, vector: Vector<T>) {
         if self.len() != vector.len() {
@@ -100,19 +100,19 @@ where
         }
         self.iter_mut()
             .zip(vector.iter())
-            .for_each(|(a, b)| *a = *a - *b);
+            .for_each(|(a, b)| *a -= b.clone());
     }
 }
 
 impl<T> Neg for Vector<T>
 where
-    T: Neg<Output = T> + One + Zero + Copy,
+    T: Neg<Output = T> + One + Zero + Clone,
 {
     type Output = Vector<T>;
 
     fn neg(self) -> Self::Output {
-        let mut result_vector = self.clone();
-        result_vector.iter_mut().for_each(|a| *a = -(*a));
+        let mut result_vector = self;
+        result_vector.iter_mut().for_each(|a| *a = -(a.clone()));
         result_vector
     }
 }
@@ -134,7 +134,7 @@ where
 /// ```
 impl<T> Mul for Vector<T>
 where
-    T: Mul<Output = T> + Copy + Zero + std::iter::Sum,
+    T: Mul<Output = T> + Clone + Zero + std::iter::Sum,
 {
     type Output = Result<T, DimensionError>;
 
@@ -146,7 +146,11 @@ where
                 "multiply".to_owned(),
             ))
         } else {
-            let sum = self.iter().zip(vector.iter()).map(|(a, b)| *a * *b).sum();
+            let sum = self
+                .iter()
+                .zip(vector.iter())
+                .map(|(a, b)| a.clone() * b.clone())
+                .sum();
             Ok(sum)
         }
     }
@@ -171,13 +175,13 @@ where
 /// ```
 impl<T> Mul<Matrix<T>> for Vector<T>
 where
-    T: One + Zero + Clone + Copy + std::iter::Sum + Display,
+    T: One + Zero + Clone + std::iter::Sum + Display,
     Vector<T>: Into<Matrix<T>>,
 {
     type Output = Result<Vector<T>, DimensionError>;
 
     fn mul(self, mat: Matrix<T>) -> Self::Output {
-        let vector: Vector<T> = self.clone();
+        let vector: Vector<T> = self;
         let mat_v: Matrix<T> = vector.into();
         println!("{}\n\n{}", mat_v, mat);
         let res = (mat_v * mat)?;
@@ -197,12 +201,12 @@ where
 /// ```
 impl<T> Mul<T> for Vector<T>
 where
-    T: Mul<Output = T> + Copy,
+    T: MulAssign + Clone,
 {
     type Output = Vector<T>;
 
     fn mul(self, rhs: T) -> Self::Output {
-        let mut result_vector = self.clone();
+        let mut result_vector = self;
         result_vector *= rhs;
         result_vector
     }
@@ -210,10 +214,10 @@ where
 
 impl<T> MulAssign<T> for Vector<T>
 where
-    T: Mul<Output = T> + Copy,
+    T: MulAssign + Clone,
 {
     fn mul_assign(&mut self, rhs: T) {
-        self.iter_mut().for_each(|a| *a = *a * rhs);
+        self.iter_mut().for_each(|a| *a *= rhs.clone());
     }
 }
 
@@ -228,12 +232,12 @@ where
 /// ```
 impl<T> Div<T> for Vector<T>
 where
-    T: Div<Output = T> + Copy,
+    T: DivAssign + Clone,
 {
     type Output = Vector<T>;
 
     fn div(self, divisor: T) -> Self::Output {
-        let mut result_matrix = self.clone();
+        let mut result_matrix = self;
         result_matrix /= divisor;
         result_matrix
     }
@@ -241,10 +245,10 @@ where
 
 impl<T> DivAssign<T> for Vector<T>
 where
-    T: Div<Output = T> + Copy,
+    T: DivAssign + Clone,
 {
     fn div_assign(&mut self, rhs: T) {
-        self.iter_mut().for_each(|a| *a = *a / rhs)
+        self.iter_mut().for_each(|a| *a /= rhs.clone())
     }
 }
 

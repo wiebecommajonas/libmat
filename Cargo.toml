@@ -21,6 +21,4 @@ edition = "2018"
 crate_type = ["lib"]
 
 [dependencies]
-num = "0.4.0"
 num-traits = "0.2.14"
-nalgebra = "*"
