@@ -55,6 +55,42 @@ where
     }
 }
 
+/// Scalar addition.
+///
+/// # Example
+/// ```
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
+/// # fn main() {
+/// let vec_a = vector![1_i32, 2, 3];
+/// let b = 3;
+/// let vec_c = vector![4_i32, 5, 6];
+/// assert_eq!((vec_a + b), vec_c);
+/// # }
+/// ```
+impl<T> Add<T> for Vector<T>
+where
+    T: AddAssign + Clone,
+{
+    type Output = Vector<T>;
+
+    fn add(self, rhs: T) -> Self::Output {
+        let mut result = self;
+        result += rhs;
+        result
+    }
+}
+
+impl<T> AddAssign<T> for Vector<T>
+where
+    T: AddAssign + Clone,
+{
+    fn add_assign(&mut self, rhs: T) {
+        self.iter_mut()
+            .for_each(|a| *a += rhs.clone());
+    }
+}
+
 /// Elementwise subtraction. Both vectors need to have the same length.
 ///
 /// # Example
@@ -101,6 +137,42 @@ where
         self.iter_mut()
             .zip(vector.iter())
             .for_each(|(a, b)| *a -= b.clone());
+    }
+}
+
+/// Scalar subtraction.
+///
+/// # Example
+/// ```
+/// # use libmat::mat::Vector;
+/// # use libmat::vector;
+/// # fn main() {
+/// let vec_a = vector![4_i32, 5, 6];
+/// let b = 3;
+/// let vec_c = vector![1_i32, 2, 3];
+/// assert_eq!((vec_a - b), vec_c);
+/// # }
+/// ```
+impl<T> Sub<T> for Vector<T>
+where
+    T: SubAssign + Clone,
+{
+    type Output = Vector<T>;
+
+    fn sub(self, rhs: T) -> Self::Output {
+        let mut result = self;
+        result -= rhs;
+        result
+    }
+}
+
+impl<T> SubAssign<T> for Vector<T>
+where
+    T: SubAssign + Clone,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        self.iter_mut()
+            .for_each(|a| *a -= rhs.clone());
     }
 }
 

@@ -99,6 +99,42 @@ where
     }
 }
 
+/// Scalar addition.
+///
+/// # Example
+/// ```
+/// # use libmat::{err::DimensionError, matrix, mat::Matrix};
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a = Matrix::one(3)?;
+/// let b = 3;
+/// let mat_c = matrix!{4, 3, 3; 3, 4, 3; 3, 3, 4};
+/// assert_eq!((mat_a + b), mat_c);
+/// # Ok(()) }
+/// ```
+impl<T> Add<T> for Matrix<T>
+where
+    T: AddAssign + Zero + One + Clone,
+{
+    type Output = Matrix<T>;
+
+    fn add(self, rhs: T) -> Self::Output {
+        let mut result_matrix = self;
+        result_matrix += rhs;
+        result_matrix
+    }
+}
+
+impl<T> AddAssign<T> for Matrix<T>
+where
+    T: AddAssign + Zero + One + Clone,
+{
+    fn add_assign(&mut self, rhs: T) {
+        self.matrix
+            .iter_mut()
+            .for_each(|a| *a += rhs.clone());
+    }
+}
+
 /// Elementwise subtraction. Both matrices need to have the same dimensions.
 ///
 /// # Example
@@ -145,6 +181,42 @@ where
             .iter_mut()
             .zip(rhs.matrix.iter())
             .for_each(|(a, b)| *a -= b.clone());
+    }
+}
+
+/// Scalar subtraction.
+///
+/// # Example
+/// ```
+/// # use libmat::{err::DimensionError, matrix, mat::Matrix};
+/// # fn main() -> Result<(), DimensionError> {
+/// let mat_a = Matrix::one(3)?;
+/// let b = 3;
+/// let mat_c = matrix!{-2, -3, -3; -3, -2, -3; -3, -3, -2};
+/// assert_eq!((mat_a - b), mat_c);
+/// # Ok(()) }
+/// ```
+impl<T> Sub<T> for Matrix<T>
+where
+    T: SubAssign + Clone,
+{
+    type Output = Matrix<T>;
+
+    fn sub(self, rhs: T) -> Self::Output {
+        let mut result = self;
+        result -= rhs;
+        result
+    }
+}
+
+impl<T> SubAssign<T> for Matrix<T>
+where
+    T: SubAssign + Clone,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        self.matrix
+            .iter_mut()
+            .for_each(|a| *a -= rhs.clone());
     }
 }
 
