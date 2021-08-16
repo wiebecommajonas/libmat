@@ -65,7 +65,7 @@ use std::result::Result;
 /// ```
 impl<T> Add for Matrix<T>
 where
-    T: AddAssign + Zero + One + Clone,
+    T: AddAssign + Clone,
 {
     type Output = Result<Matrix<T>, DimensionError>;
 
@@ -86,7 +86,7 @@ where
 
 impl<T> AddAssign<Matrix<T>> for Matrix<T>
 where
-    T: AddAssign + Zero + One + Clone,
+    T: AddAssign + Clone,
 {
     fn add_assign(&mut self, rhs: Matrix<T>) {
         if self.dims != rhs.dims {
@@ -113,7 +113,7 @@ where
 /// ```
 impl<T> Add<T> for Matrix<T>
 where
-    T: AddAssign + Zero + One + Clone,
+    T: AddAssign + Clone,
 {
     type Output = Matrix<T>;
 
@@ -126,7 +126,7 @@ where
 
 impl<T> AddAssign<T> for Matrix<T>
 where
-    T: AddAssign + Zero + One + Clone,
+    T: AddAssign + Clone,
 {
     fn add_assign(&mut self, rhs: T) {
         self.matrix
@@ -150,7 +150,7 @@ where
 /// ```
 impl<T> Sub for Matrix<T>
 where
-    T: SubAssign + One + Zero + Clone,
+    T: SubAssign + Clone,
 {
     type Output = Result<Matrix<T>, DimensionError>;
 
@@ -171,7 +171,7 @@ where
 
 impl<T> SubAssign<Matrix<T>> for Matrix<T>
 where
-    T: SubAssign + Zero + One + Clone,
+    T: SubAssign + Clone,
 {
     fn sub_assign(&mut self, rhs: Matrix<T>) {
         if self.dims != rhs.dims {
@@ -233,7 +233,7 @@ where
 /// ```
 impl<T> Neg for Matrix<T>
 where
-    T: Neg<Output = T> + One + Zero + Clone,
+    T: Neg<Output = T> + Clone,
 {
     type Output = Matrix<T>;
 
