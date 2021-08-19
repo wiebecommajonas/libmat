@@ -2,7 +2,7 @@ use crate::err::DimensionError;
 use crate::mat::dims::Dimensions;
 use crate::mat::{Matrix, Vector};
 use num_traits::{sign, One, Zero};
-use std::{convert::From, fmt::Display};
+use std::convert::From;
 
 impl<T> Matrix<T>
 where
@@ -261,7 +261,7 @@ where
     /// ```
     pub fn det(&self) -> Result<T, DimensionError>
     where
-        T: sign::Signed + PartialOrd + Display + std::iter::Sum,
+        T: sign::Signed + PartialOrd + std::iter::Sum,
     {
         if let Some((mat, p)) = self.lupdecompose()? {
             let mut det = mat.matrix[0].clone();
