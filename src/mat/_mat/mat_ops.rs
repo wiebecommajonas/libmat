@@ -57,8 +57,8 @@ use std::result::Result;
 /// # use libmat::mat::Matrix;
 /// # use libmat::err::DimensionError;
 /// # fn main() -> Result<(), DimensionError> {
-/// let mat_a = Matrix::one(3)?;
-/// let mat_b = Matrix::one(3)?;
+/// let mat_a = Matrix::<i32>::one(3)?;
+/// let mat_b = Matrix::<i32>::one(3)?;
 /// let mat_c = Matrix::diag(3, 2)?;
 /// assert_eq!((mat_a + mat_b)?, mat_c);
 /// # Ok(()) }
