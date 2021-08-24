@@ -1,13 +1,12 @@
 use crate::err::DimensionError;
 use crate::mat::dims::Dimensions;
-use crate::mat::Matrix;
-use num_traits::identities::{One, Zero};
-use num_traits::{cast, sign};
-use std::fmt::Display;
+use crate::mat::{Matrix, Vector};
+use num_traits::{sign, One, Zero};
+use std::convert::From;
 
 impl<T> Matrix<T>
 where
-    T: Copy,
+    T: Clone + One + Zero,
 {
     /// Create a new matrix of type `T` with `init` as the default value for each entry.
     ///
@@ -114,10 +113,7 @@ where
     /// // 0 0 1
     /// # Ok(()) }
     /// ```
-    pub fn one(dim: usize) -> Result<Matrix<T>, DimensionError>
-    where
-        T: One + Zero,
-    {
+    pub fn one(dim: usize) -> Result<Matrix<T>, DimensionError> {
         let mut res = Matrix::<T>::zero(dim, dim)?;
         for i in 0..dim {
             res[i][i] = T::one();
@@ -142,11 +138,8 @@ where
     /// assert_eq!(mat, Matrix::new(3, 8, 0)?);
     /// # Ok(()) }
     /// ```
-    pub fn zero(rows: usize, cols: usize) -> Result<Matrix<T>, DimensionError>
-    where
-        T: Zero,
-    {
-        Ok(Self::new(rows, cols, T::zero())?)
+    pub fn zero(rows: usize, cols: usize) -> Result<Matrix<T>, DimensionError> {
+        Self::new(rows, cols, T::zero())
     }
 
     /// Create a diagonal matrix of type `T` with entries `init`.
@@ -166,43 +159,40 @@ where
     /// assert_eq!(mat, Matrix::one(3)?);
     /// # Ok(()) }
     /// ```
-    pub fn diag(dim: usize, init: T) -> Result<Matrix<T>, DimensionError>
-    where
-        T: Zero + One,
-    {
-        Ok(Matrix::<T>::one(dim)? * init)
+    pub fn diag(dim: usize, init: T) -> Result<Matrix<T>, DimensionError> {
+        let mut res = Matrix::<T>::zero(dim, dim)?;
+        for i in 0..dim {
+            res[i][i] = init.clone();
+        }
+        Ok(res)
     }
 
     /// Creates a diagonal matrix with dimensions `dim x dim` and initial entries specified in `entries`.
-    pub fn diag_with(dim: usize, entries: &[T]) -> Result<Matrix<T>, DimensionError>
-    where
-        T: Zero + One,
-    {
-        if entries.len() > dim || entries.len() < dim {
-            panic!("Input slice does not have the correct length.");
+    pub fn diag_with(dim: usize, entries: &[T]) -> Result<Matrix<T>, DimensionError> {
+        if entries.len() != dim {
+            return Err(DimensionError::InvalidInputDimensions(entries.len(), dim));
         }
         let mut res_mat = Matrix::one(dim)?;
         for i in 0..dim {
-            res_mat[i][i] = entries[i];
+            res_mat[i][i] = entries[i].clone();
         }
         Ok(res_mat)
     }
-    pub fn lupdecompose(&self) -> Result<Option<(Matrix<f64>, Vec<usize>)>, DimensionError>
+    pub fn lupdecompose(&self) -> Result<Option<(Matrix<T>, Vec<usize>)>, DimensionError>
     where
-        T: sign::Signed + PartialOrd + cast::ToPrimitive,
+        T: sign::Signed + PartialOrd + Clone + Zero + One + std::iter::Sum,
     {
         if !self.is_square() {
             Err(DimensionError::NoSquare)
         } else {
-            let mut a = Matrix::zero(self.dims.get_rows(), self.dims.get_cols()).unwrap();
-            a.matrix = self.matrix.iter().map(|&x| x.to_f64().unwrap()).collect();
+            let mut a: Matrix<T> = self.clone();
             let dim = self.dims.get_rows();
             let mut imax: usize;
-            let mut max_a: f64;
+            let mut max_a: T;
             let mut p: Vec<usize> = (0..=dim).collect();
 
             for i in 0..dim {
-                max_a = 0_f64;
+                max_a = T::zero();
                 imax = i;
 
                 for k in i..dim {
@@ -216,37 +206,35 @@ where
                     }
                 }
 
-                if max_a < 0.000001 {
+                if max_a.is_zero() {
                     return Ok(None);
                 }
 
                 if imax != i {
-                    let j = p[i];
-                    p[i] = p[imax];
-                    p[imax] = j;
+                    p.swap(i, imax);
 
-                    let mut t_ij: Matrix<f64> = Matrix::one(self.dims.get_rows()).unwrap();
+                    let mut t_ij: Matrix<T> = Matrix::one(self.dims.get_rows()).unwrap();
                     // t_ij.matrix[i * dim + i] = 0_f64;
                     // t_ij.matrix[imax * dim + imax] = 0_f64;
                     // t_ij.matrix[i * dim + imax] = 1_f64;
                     // t_ij.matrix[imax * dim + i] = 1_f64;
-                    t_ij[i][i] = 0_f64;
-                    t_ij[imax][imax] = 0_f64;
-                    t_ij[i][imax] = 1_f64;
-                    t_ij[imax][i] = 1_f64;
+                    t_ij[i][i] = T::zero();
+                    t_ij[imax][imax] = T::zero();
+                    t_ij[i][imax] = T::one();
+                    t_ij[imax][i] = T::one();
                     // switch rows i and imax
-                    a = (a * t_ij).unwrap();
+                    a = (a * t_ij)?;
 
                     p[dim] += 1;
                 }
 
                 for j in (i + 1)..dim {
                     // a.matrix[j * dim + i] = a.matrix[j * dim + i] / a.matrix[i * dim + i];
-                    a[j][i] = a[j][i] / a[i][i];
+                    a[j][i] = a[j][i].clone() / a[i][i].clone();
                     for k in (i + 1)..dim {
                         // a.matrix[j * dim + k] =
                         //     a.matrix[j * dim + k] - (a.matrix[j * dim + i] * a.matrix[i * dim + k])
-                        a[j][k] = a[j][k] - a[j][i] * a[i][k];
+                        a[j][k] = a[j][k].clone() - a[j][i].clone() * a[i][k].clone();
                     }
                 }
             }
@@ -267,18 +255,18 @@ where
     /// # use libmat::matrix;
     /// # use libmat::err::DimensionError;
     /// # fn main() -> Result<(), DimensionError> {
-    /// let mat = matrix!{1, 2, 3; 3, 2, 1; 2, 1, 3};
+    /// let mat = matrix!{1.0, 2.0, 3.0; 3.0, 2.0, 1.0; 2.0, 1.0, 3.0};
     /// assert_eq!(mat.det()?, -12.0);
     /// # Ok(()) }
     /// ```
-    pub fn det(&self) -> Result<f64, DimensionError>
+    pub fn det(&self) -> Result<T, DimensionError>
     where
-        T: sign::Signed + PartialOrd + Display + cast::ToPrimitive,
+        T: sign::Signed + PartialOrd + std::iter::Sum,
     {
         if let Some((mat, p)) = self.lupdecompose()? {
-            let mut det = mat.matrix[0];
+            let mut det = mat.matrix[0].clone();
             for i in 1..mat.col_count() {
-                det = det * mat.matrix[i * mat.col_count() + i];
+                det = det * mat.matrix[i * mat.col_count() + i].clone();
             }
             if (p[mat.row_count()] - mat.row_count()) % 2 == 0 {
                 Ok(det)
@@ -286,7 +274,7 @@ where
                 Ok(-det)
             }
         } else {
-            Ok(0_f64)
+            Ok(T::zero())
         }
     }
 
@@ -330,15 +318,27 @@ where
         let mut vec = Vec::<T>::new();
         for i in 0..self.dims.get_cols() {
             for j in 0..self.dims.get_rows() {
-                vec.push(self.matrix[j * self.dims.get_cols() + i]);
+                vec.push(self.matrix[j * self.dims.get_cols() + i].clone());
             }
         }
         Matrix::<T>::from_vec(self.dims.get_cols(), self.dims.get_rows(), vec).unwrap()
     }
 }
 
+impl<T> From<Vector<T>> for Matrix<T>
+where
+    T: Zero + One + Clone,
+{
+    fn from(v: Vector<T>) -> Matrix<T> {
+        Matrix::<T>::from_vec(v.dims.get_rows(), v.dims.get_cols(), v.entries).unwrap()
+    }
+}
+
 // GETTERS
-impl<T> Matrix<T> {
+impl<T> Matrix<T>
+where
+    T: Clone,
+{
     /// Get the number of rows
     pub fn row_count(&self) -> usize {
         self.dims.get_rows()

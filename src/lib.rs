@@ -25,8 +25,8 @@
 //! };
 //!
 //! // Are the matrices invertible?
-//! assert_ne!(mat_a.det()?, 0_f64);
-//! assert_ne!(mat_b.det()?, 0_f64);
+//! assert_ne!(mat_a.det()?, 0);
+//! assert_ne!(mat_b.det()?, 0);
 //! # Ok(()) }
 //! ```
 //!

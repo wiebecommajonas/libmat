@@ -52,7 +52,7 @@ where
     type Output = SMatrix<T, M, N>;
 
     fn add(self, rhs: SMatrix<T, M, N>) -> Self::Output {
-        let mut result = self.clone();
+        let mut result = self;
         result += rhs;
         result
     }
@@ -78,7 +78,7 @@ where
     type Output = SMatrix<T, M, N>;
 
     fn sub(self, rhs: SMatrix<T, M, N>) -> Self::Output {
-        let mut result = self.clone();
+        let mut result = self;
         result -= rhs;
         result
     }
@@ -134,7 +134,7 @@ where
     type Output = SMatrix<T, M, N>;
 
     fn mul(self, rhs: T) -> Self::Output {
-        let mut result = self.clone();
+        let mut result = self;
         result *= rhs;
         result
     }
@@ -156,7 +156,7 @@ where
 {
     type Output = Self;
     fn div(self, rhs: T) -> Self::Output {
-        let mut result = self.clone();
+        let mut result = self;
         result /= rhs;
         result
     }

@@ -21,7 +21,7 @@ where
                 } else if es.peek().is_some() {
                     write!(f, "\t")?;
                 } else {
-                    write!(f, "\n")?;
+                    writeln!(f)?;
                 }
             }
         }
@@ -93,15 +93,15 @@ where
                     };
 
                     for k in 0..i {
-                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+                        mat_inv[i][j] -= mat[i][k] * mat_inv[k][j];
                     }
                 }
 
                 for i in (0..=(dim - 1)).rev() {
                     for k in (i + 1)..dim {
-                        mat_inv[i][j] = mat_inv[i][j] - mat[i][k] * mat_inv[k][j];
+                        mat_inv[i][j] -= mat[i][k] * mat_inv[k][j];
                     }
-                    mat_inv[i][j] = mat_inv[i][j] / mat[i][i];
+                    mat_inv[i][j] /= mat[i][i];
                 }
             }
             Some(mat_inv)

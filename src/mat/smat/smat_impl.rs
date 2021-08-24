@@ -113,9 +113,7 @@ where
             }
 
             if imax != i {
-                let j = p[i];
-                p[i] = p[imax];
-                p[imax] = j;
+                p.swap(i, imax);
 
                 let mut t_ij: SMatrix<f64, N, N> = SMatrix::one();
                 t_ij[i][i] = f64::zero();
@@ -129,9 +127,9 @@ where
             }
 
             for j in (i + 1)..dim {
-                a[j][i] = a[j][i] / a[i][i];
+                a[j][i] /= a[i][i];
                 for k in (i + 1)..dim {
-                    a[j][k] = a[j][k] - a[j][i] * a[i][k];
+                    a[j][k] -= a[j][i] * a[i][k];
                 }
             }
         }
@@ -144,7 +142,7 @@ where
         if let Some((mat, p)) = self.lupdecompose() {
             let mut det = mat[0][0];
             for i in 1..N {
-                det = det * mat[i][i];
+                det *= mat[i][i];
             }
             if (p[N] - N) % 2 == 0 {
                 det
