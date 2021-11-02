@@ -97,12 +97,15 @@ where
                     }
                 }
 
-                for i in (0..=(dim - 1)).rev() {
+                for i in (0..dim).rev() {
                     for k in (i + 1)..dim {
                         mat_inv[i][j] -= mat[i][k] * mat_inv[k][j];
                     }
                     mat_inv[i][j] /= mat[i][i];
                 }
+            }
+            if (p[dim] - dim) % 2 != 0 {
+                mat_inv.data.reverse();
             }
             Some(mat_inv)
         } else {

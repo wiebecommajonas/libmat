@@ -71,7 +71,7 @@ where
                     }
                 }
 
-                for i in (0..=(dim - 1)).rev() {
+                for i in (0..dim).rev() {
                     for k in (i + 1)..dim {
                         mat_inv[i][j] =
                             mat_inv[i][j].clone() - mat[i][k].clone() * mat_inv[k][j].clone();
@@ -79,7 +79,9 @@ where
                     mat_inv[i][j] /= mat[i][i].clone();
                 }
             }
-            mat_inv.matrix.reverse();
+            if (p[dim] - dim) % 2 != 0 {
+                mat_inv.matrix.reverse();
+            }
             Ok(Some(mat_inv))
         } else {
             Ok(None)
