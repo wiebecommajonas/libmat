@@ -80,11 +80,11 @@ where
     // pub fn insert_row(&mut self, at: usize, row: &[T]) -> Result<(), MatrixError> {
     //     if row.len() != self[0].len() {
     //         Err(MatrixError::IndexOutOfBounds)
-    //     } else if at * self.dims.get_cols() >= self.matrix.len() {
+    //     } else if at * self.cols() >= self.matrix.len() {
     //         Err(MatrixError::IndexOutOfBounds)
     //     } else {
     //         for i in 0..row.len() {
-    //             self.matrix.insert(at * self.dims.get_cols() + i, row[i]);
+    //             self.matrix.insert(at * self.cols() + i, row[i]);
     //         }
     //         Ok(())
     //     }
@@ -186,7 +186,7 @@ where
             Err(DimensionError::NoSquare)
         } else {
             let mut a: Matrix<T> = self.clone();
-            let dim = self.dims.get_rows();
+            let dim = self.rows();
             let mut imax: usize;
             let mut max_a: T;
             let mut p: Vec<usize> = (0..=dim).collect();
@@ -196,10 +196,6 @@ where
                 imax = i;
 
                 for k in i..dim {
-                    // if a.matrix[i * dim + k].abs() > max_a {
-                    //     max_a = a.matrix[i * dim + k].abs();
-                    //     imax = k;
-                    // }
                     if a[i][k].abs() > max_a {
                         max_a = a[i][k].abs();
                         imax = k;
@@ -213,11 +209,7 @@ where
                 if imax != i {
                     p.swap(i, imax);
 
-                    let mut t_ij: Matrix<T> = Matrix::one(self.dims.get_rows()).unwrap();
-                    // t_ij.matrix[i * dim + i] = 0_f64;
-                    // t_ij.matrix[imax * dim + imax] = 0_f64;
-                    // t_ij.matrix[i * dim + imax] = 1_f64;
-                    // t_ij.matrix[imax * dim + i] = 1_f64;
+                    let mut t_ij: Matrix<T> = Matrix::one(self.rows()).unwrap();
                     t_ij[i][i] = T::zero();
                     t_ij[imax][imax] = T::zero();
                     t_ij[i][imax] = T::one();
@@ -229,11 +221,8 @@ where
                 }
 
                 for j in (i + 1)..dim {
-                    // a.matrix[j * dim + i] = a.matrix[j * dim + i] / a.matrix[i * dim + i];
                     a[j][i] = a[j][i].clone() / a[i][i].clone();
                     for k in (i + 1)..dim {
-                        // a.matrix[j * dim + k] =
-                        //     a.matrix[j * dim + k] - (a.matrix[j * dim + i] * a.matrix[i * dim + k])
                         a[j][k] = a[j][k].clone() - a[j][i].clone() * a[i][k].clone();
                     }
                 }
@@ -243,10 +232,6 @@ where
     }
 
     /// Calculate the determinant of a square matrix.
-    ///
-    /// # Caution
-    ///
-    /// Calculation may not be exact. Be sure to use `round()` when calculating the determinant of a integer matrix.
     ///
     /// # Example
     ///
@@ -265,10 +250,10 @@ where
     {
         if let Some((mat, p)) = self.lupdecompose()? {
             let mut det = mat.matrix[0].clone();
-            for i in 1..mat.col_count() {
-                det = det * mat.matrix[i * mat.col_count() + i].clone();
+            for i in 1..mat.cols() {
+                det = det * mat.matrix[i * mat.cols() + i].clone();
             }
-            if (p[mat.row_count()] - mat.row_count()) % 2 == 0 {
+            if (p[mat.rows()] - mat.rows()) % 2 == 0 {
                 Ok(det)
             } else {
                 Ok(-det)
@@ -316,12 +301,12 @@ where
     /// ```
     pub fn transpose(&self) -> Matrix<T> {
         let mut vec = Vec::<T>::new();
-        for i in 0..self.dims.get_cols() {
-            for j in 0..self.dims.get_rows() {
-                vec.push(self.matrix[j * self.dims.get_cols() + i].clone());
+        for i in 0..self.cols() {
+            for j in 0..self.rows() {
+                vec.push(self.matrix[j * self.cols() + i].clone());
             }
         }
-        Matrix::<T>::from_vec(self.dims.get_cols(), self.dims.get_rows(), vec).unwrap()
+        Matrix::<T>::from_vec(self.cols(), self.rows(), vec).unwrap()
     }
 }
 
@@ -330,26 +315,39 @@ where
     T: Zero + One + Clone,
 {
     fn from(v: Vector<T>) -> Matrix<T> {
-        Matrix::<T>::from_vec(v.dims.get_rows(), v.dims.get_cols(), v.entries).unwrap()
+        if v.is_row_vector() {
+            Matrix::<T>::from_vec(1, v.size(), v.entries).unwrap()
+        } else {
+            Matrix::<T>::from_vec(v.size(), 1, v.entries).unwrap()
+        }
     }
 }
 
 // GETTERS
-impl<T> Matrix<T>
-where
-    T: Clone,
-{
+impl<T> Matrix<T> {
     /// Get the number of rows
-    pub fn row_count(&self) -> usize {
-        self.dims.get_rows()
+    pub fn rows(&self) -> usize {
+        self.dims.rows()
     }
 
     /// Get the number of columns
-    pub fn col_count(&self) -> usize {
-        self.dims.get_cols()
+    pub fn cols(&self) -> usize {
+        self.dims.cols()
     }
 
-    pub fn get_dims(&self) -> Dimensions {
-        Dimensions::new(self.row_count(), self.col_count())
+    pub fn dims(&self) -> Dimensions {
+        Dimensions::new(self.rows(), self.cols())
+    }
+
+    pub fn entry(&self, i: impl Into<usize>, j: impl Into<usize>) -> T
+    where
+        T: Clone,
+    {
+        self.matrix[self.cols() * i.into() + j.into()].clone()
+    }
+
+    pub fn entry_mut<'a>(&'a mut self, i: impl Into<usize>, j: impl Into<usize>) -> &'a mut T {
+        let cols = self.cols();
+        &mut self.matrix[cols * i.into() + j.into()]
     }
 }

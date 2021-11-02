@@ -12,12 +12,12 @@ where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        for i in 0..self.dims.get_rows() {
-            for j in 0..self.dims.get_cols() {
-                let n = &self.matrix[i * self.dims.get_cols() + j];
-                if j == self.dims.get_cols() - 1 && i == self.dims.get_rows() - 1 {
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                let n = &self.matrix[i * self.cols() + j];
+                if j == self.cols() - 1 && i == self.rows() - 1 {
                     write!(f, "{}", n)?;
-                } else if j == self.dims.get_cols() - 1 {
+                } else if j == self.cols() - 1 {
                     writeln!(f, "{}", n)?;
                 } else {
                     write!(f, "{}\t", n)?;
@@ -53,7 +53,7 @@ where
     /// ```
     fn inv(self) -> Self::Output {
         if let Some((mat, p)) = self.lupdecompose()? {
-            let dim = mat.row_count();
+            let dim = mat.rows();
             let mut mat_inv = Matrix::<T>::zero(dim, dim).unwrap();
             for j in 0..dim {
                 for i in 0..dim {

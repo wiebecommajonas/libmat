@@ -50,8 +50,8 @@ fn invalid_mul() -> Result<(), DimensionError> {
     assert_eq!(
         mat_e.clone() * mat_c.clone(),
         Err(DimensionError::NoMatch(
-            mat_e.get_dims(),
-            mat_c.get_dims(),
+            mat_e.dims(),
+            mat_c.dims(),
             "multiply".to_owned()
         ))
     );

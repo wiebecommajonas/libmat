@@ -35,12 +35,12 @@ where
     }
 
     /// Get the number of rows
-    pub fn row_count(&self) -> usize {
+    pub fn rows(&self) -> usize {
         M
     }
 
     /// Get the number of columns
-    pub fn col_count(&self) -> usize {
+    pub fn cols(&self) -> usize {
         N
     }
 

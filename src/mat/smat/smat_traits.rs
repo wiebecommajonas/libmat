@@ -80,7 +80,7 @@ where
 
     fn inv(self) -> Self::Output {
         if let Some((mat, p)) = self.lupdecompose() {
-            let dim = mat.row_count();
+            let dim = mat.rows();
             let mut mat_inv = SMatrix::<f64, N, N>::zero();
             for j in 0..dim {
                 for i in 0..dim {

@@ -129,9 +129,7 @@ where
     T: AddAssign + Clone,
 {
     fn add_assign(&mut self, rhs: T) {
-        self.matrix
-            .iter_mut()
-            .for_each(|a| *a += rhs.clone());
+        self.matrix.iter_mut().for_each(|a| *a += rhs.clone());
     }
 }
 
@@ -214,9 +212,7 @@ where
     T: SubAssign + Clone,
 {
     fn sub_assign(&mut self, rhs: T) {
-        self.matrix
-            .iter_mut()
-            .for_each(|a| *a -= rhs.clone());
+        self.matrix.iter_mut().for_each(|a| *a -= rhs.clone());
     }
 }
 
@@ -270,30 +266,8 @@ where
 {
     type Output = Result<Matrix<T>, DimensionError>;
 
-    // fn mul(self, rhs: &Matrix<T>) -> Self::Output {
-    //     let a = self.clone();
-    //     let b = rhs.clone();
-    //     if a.dims.get_cols() != b.dims.get_rows() {
-    //         panic!("Dimensions of matrices should be 'm x n' and 'n x k'");
-    //     } else {
-    //         let mut res: Matrix<T> = Matrix::new(a.dims.get_rows(), b.dims.get_cols(), T::zero());
-    //         for i in 0..a.dims.get_rows() {
-    //             for j in 0..b.dims.get_cols() {
-    //                 let mut sum = T::zero();
-    //                 for k in 0..a.dims.get_cols() {
-    //                     sum = sum
-    //                         + a.matrix[i * a.dims.get_cols() + k]
-    //                             * b.matrix[k * b.dims.get_cols() + j];
-    //                 }
-    //                 res.matrix[i * res.dims.get_cols() + j] = sum;
-    //             }
-    //         }
-    //         res
-    //     }
-    // }
-
     fn mul(self, rhs: Matrix<T>) -> Self::Output {
-        if self.col_count() != rhs.row_count() {
+        if self.cols() != rhs.rows() {
             Err(DimensionError::NoMatch(
                 self.dims,
                 rhs.dims,
@@ -301,16 +275,17 @@ where
             ))
         } else {
             let r_rhs = rhs.transpose();
-            let mut result_matrix = Matrix::<T>::zero(self.row_count(), rhs.col_count()).unwrap();
+            let mut result_matrix = Matrix::<T>::zero(self.rows(), rhs.cols()).unwrap();
+            let res_cols = result_matrix.cols();
 
             result_matrix
                 .matrix
-                .chunks_mut(result_matrix.dims.get_cols())
-                .zip(self.matrix.chunks(self.col_count()))
+                .chunks_mut(res_cols)
+                .zip(self.matrix.chunks(self.cols()))
                 .for_each(|(row_mut, row_self)| {
                     row_mut
                         .iter_mut()
-                        .zip(r_rhs.matrix.chunks(r_rhs.col_count()))
+                        .zip(r_rhs.matrix.chunks(r_rhs.cols()))
                         .for_each(|(entry_mut, col_rhs)| {
                             *entry_mut = row_self
                                 .iter()
@@ -440,10 +415,11 @@ impl<T> Index<usize> for Matrix<T> {
     type Output = [T];
 
     fn index(&self, idx: usize) -> &Self::Output {
-        if idx >= self.dims.get_rows() {
+        if idx >= self.rows() {
             panic!("Unreachable index: {}", idx);
         }
-        &self.matrix[idx * self.dims.get_cols()..idx * self.dims.get_cols() + self.dims.get_cols()]
+        let cols = self.cols();
+        &self.matrix[idx * cols..idx * cols + cols]
     }
 }
 
@@ -464,10 +440,10 @@ impl<T> Index<usize> for Matrix<T> {
 /// ```
 impl<T> IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-        if idx >= self.dims.get_rows() {
+        if idx >= self.rows() {
             panic!("Unreachable index: {}", idx);
         }
-        &mut self.matrix
-            [idx * self.dims.get_cols()..idx * self.dims.get_cols() + self.dims.get_cols()]
+        let cols = self.cols();
+        &mut self.matrix[idx * cols..idx * cols + cols]
     }
 }

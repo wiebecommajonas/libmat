@@ -16,10 +16,10 @@ impl Dimensions {
     pub fn is_square(&self) -> bool {
         self.rows == self.cols
     }
-    pub fn get_rows(&self) -> usize {
+    pub fn rows(&self) -> usize {
         self.rows
     }
-    pub fn get_cols(&self) -> usize {
+    pub fn cols(&self) -> usize {
         self.cols
     }
 }

@@ -13,10 +13,10 @@ where
         }
     }
     pub fn to_row_vector(&self) -> Vector<T> {
-        let dim = if self.dims.get_rows() > self.dims.get_cols() {
-            self.dims.get_rows()
+        let dim = if self.dims.rows() > self.dims.cols() {
+            self.dims.rows()
         } else {
-            self.dims.get_cols()
+            self.dims.cols()
         };
         Vector::<T> {
             dims: Dimensions::new(1, dim),
@@ -24,10 +24,10 @@ where
         }
     }
     pub fn to_col_vector(&self) -> Vector<T> {
-        let dim = if self.dims.get_rows() > self.dims.get_cols() {
-            self.dims.get_rows()
+        let dim = if self.dims.rows() > self.dims.cols() {
+            self.dims.rows()
         } else {
-            self.dims.get_cols()
+            self.dims.cols()
         };
         Vector::<T> {
             dims: Dimensions::new(dim, 1),
@@ -35,7 +35,17 @@ where
         }
     }
 
-    pub fn get_size(&self) -> usize {
+    pub fn is_col_vector(&self) -> bool {
+        self.dims.rows() >= self.dims.cols()
+    }
+
+    pub fn is_row_vector(&self) -> bool {
+        self.dims.cols() >= self.dims.rows()
+    }
+}
+
+impl<T> Vector<T> {
+    pub fn size(&self) -> usize {
         self.entries.len()
     }
 }
@@ -57,7 +67,7 @@ where
     T: Clone,
 {
     fn from(mat: Matrix<T>) -> Vector<T> {
-        if mat.row_count() != 1 && mat.col_count() != 1 {
+        if mat.rows() != 1 && mat.cols() != 1 {
             panic!("Could not convert matrix into vector.");
         }
         Vector::<T> {
