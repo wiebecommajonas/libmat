@@ -194,6 +194,7 @@ where
     }
 
     /// Creates a diagonal matrix with initial entries specified in `entries`.
+    #[allow(clippy::manual_memcpy)]
     pub fn diag_with(entries: &[T]) -> SMatrix<T, N, N>
     where
         T: One + Copy + Zero + std::iter::Sum,
