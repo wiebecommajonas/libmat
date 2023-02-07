@@ -337,7 +337,7 @@ where
             if mat[row][col].is_zero() {
                 // find non-zero
                 for r in row..mat.rows() {
-                    if !mat[r][0].is_zero() {
+                    if !mat[r][r].is_zero() {
                         // swap r -> row
                         for (i, item) in mat[row].to_vec().iter().cloned().enumerate() {
                             mat[row][i] = mat[r][i].clone();
