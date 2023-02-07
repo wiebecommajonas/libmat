@@ -15,7 +15,7 @@ where
         while let Some(r) = rs.next() {
             let mut es = r.iter().peekable();
             while let Some(e) = es.next() {
-                write!(f, "{}", e)?;
+                write!(f, "{e}")?;
                 if rs.peek().is_some() {
                     write!(f, "")?;
                 } else if es.peek().is_some() {

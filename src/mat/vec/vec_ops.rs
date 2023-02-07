@@ -86,8 +86,7 @@ where
     T: AddAssign + Clone,
 {
     fn add_assign(&mut self, rhs: T) {
-        self.iter_mut()
-            .for_each(|a| *a += rhs.clone());
+        self.iter_mut().for_each(|a| *a += rhs.clone());
     }
 }
 
@@ -171,8 +170,7 @@ where
     T: SubAssign + Clone,
 {
     fn sub_assign(&mut self, rhs: T) {
-        self.iter_mut()
-            .for_each(|a| *a -= rhs.clone());
+        self.iter_mut().for_each(|a| *a -= rhs.clone());
     }
 }
 
@@ -255,9 +253,7 @@ where
     fn mul(self, mat: Matrix<T>) -> Self::Output {
         let vector: Vector<T> = self;
         let mat_v: Matrix<T> = vector.into();
-        println!("{}\n\n{}", mat_v, mat);
         let res = (mat_v * mat)?;
-        println!("\n{}", res);
         Ok(res.into())
     }
 }

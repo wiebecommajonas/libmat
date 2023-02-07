@@ -19,8 +19,7 @@ impl Display for MatrixError {
         match self {
             MatrixError::IndexOutOfBounds(idx) => write!(
                 f,
-                "Tried to access a matrix at index `{}`, which is out of bounds.",
-                idx
+                "Tried to access a matrix at index `{idx}`, which is out of bounds.",
             )?,
         }
         Ok(())
@@ -33,12 +32,11 @@ impl Display for DimensionError {
             DimensionError::InvalidDimensions => {
                 write!(f, "Dimensions with a size of less than 1 are invalid.")?
             }
-            DimensionError::NoMatch(dims, bad_dims, op) => {write!(
+            DimensionError::NoMatch(dims, bad_dims, op) => write!(
                 f,
-                "Dimensions of two matrices do not match in the correct way. Cannot {} {} matrix with {} matrix.",
-                op, dims, bad_dims
-            )?}
-            DimensionError::InvalidInputDimensions(input_len, correct_len) => {write!(f, "Invalid input dimensions. Input has length {}, but should have length {}.", input_len, correct_len)?}
+                "Dimensions of two matrices do not match in the correct way. Cannot {op} {dims} matrix with {bad_dims} matrix.",
+            )?,
+            DimensionError::InvalidInputDimensions(input_len, correct_len) => write!(f, "Invalid input dimensions. Input has length {input_len}, but should have length {correct_len}.")?,
             DimensionError::NoSquare => {
                 write!(f, "Not a square matrix. Rows and cols need to be the same.")?
             }
