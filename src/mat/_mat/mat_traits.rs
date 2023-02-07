@@ -16,11 +16,11 @@ where
             for j in 0..self.cols() {
                 let n = &self.matrix[i * self.cols() + j];
                 if j == self.cols() - 1 && i == self.rows() - 1 {
-                    write!(f, "{}", n)?;
+                    write!(f, "{n}")?;
                 } else if j == self.cols() - 1 {
-                    writeln!(f, "{}", n)?;
+                    writeln!(f, "{n}")?;
                 } else {
-                    write!(f, "{}\t", n)?;
+                    write!(f, "{n}\t")?;
                 }
             }
         }
