@@ -168,6 +168,7 @@ where
     }
 
     /// Creates a diagonal matrix with dimensions `dim x dim` and initial entries specified in `entries`.
+    #[allow(clippy::manual_memcpy)]
     pub fn diag_with(dim: usize, entries: &[T]) -> Result<Matrix<T>, DimensionError> {
         if entries.len() != dim {
             return Err(DimensionError::InvalidInputDimensions(entries.len(), dim));
@@ -346,7 +347,7 @@ impl<T> Matrix<T> {
         self.matrix[self.cols() * i.into() + j.into()].clone()
     }
 
-    pub fn entry_mut<'a>(&'a mut self, i: impl Into<usize>, j: impl Into<usize>) -> &'a mut T {
+    pub fn entry_mut(&mut self, i: impl Into<usize>, j: impl Into<usize>) -> &mut T {
         let cols = self.cols();
         &mut self.matrix[cols * i.into() + j.into()]
     }
