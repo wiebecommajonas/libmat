@@ -30,7 +30,7 @@ where
 
 impl<T> Inv for Matrix<T>
 where
-    T: One + Zero + Clone + Signed + PartialOrd + std::iter::Sum + std::ops::DivAssign,
+    T: Signed + PartialOrd + std::ops::DivAssign + std::ops::SubAssign + Clone + Zero + One,
 {
     type Output = Result<Option<Matrix<T>>, DimensionError>;
 
@@ -44,47 +44,47 @@ where
     /// # use num_traits::ops::inv::Inv;
     /// # use libmat::err::DimensionError;
     /// # fn main() -> Result<(), DimensionError> {
-    /// let mat_a: Matrix<f32> = matrix!{{0.0,-1.0,2.0},{1.0,2.0,0.0},{2.0,1.0,0.0}};
+    /// let mat_a: Matrix<f32> = matrix!{{1.0,2.0,3.0},{0.0,1.0,4.0},{-5.0,-6.0,0.0}};
     /// let mat_c: Matrix<i32> = matrix!{{1,0,0},{0,1,0},{0,0,0}}; // not invertible
-    /// let mat_b = matrix!{{0.0, -1.0/3.0, 2.0/3.0}, {0.0, 2.0/3.0, -1.0/3.0}, {1.0/2.0, 1.0/3.0, -1.0/6.0}};
+    /// let mat_b = matrix!{{-24.0, 18.0, -5.0}, {20.0, -15.0, 4.0}, {-5.0, 4.0, -1.0}};
     /// assert_eq!(mat_a.inv()?, Some(mat_b));
     /// assert_eq!(mat_c.inv()?, None);
     /// # Ok(()) }
     /// ```
     fn inv(self) -> Self::Output {
-        if let Some((mat, p)) = self.lupdecompose()? {
-            let dim = mat.rows();
-            let mut mat_inv = Matrix::<T>::zero(dim, dim).unwrap();
-            for j in 0..dim {
-                for i in 0..dim {
-                    mat_inv[i][j] = {
-                        if p[i] == j {
-                            T::one()
-                        } else {
-                            T::zero()
-                        }
-                    };
-
-                    for k in 0..i {
-                        mat_inv[i][j] =
-                            mat_inv[i][j].clone() - mat[i][k].clone() * mat_inv[k][j].clone();
-                    }
-                }
-
-                for i in (0..dim).rev() {
-                    for k in (i + 1)..dim {
-                        mat_inv[i][j] =
-                            mat_inv[i][j].clone() - mat[i][k].clone() * mat_inv[k][j].clone();
-                    }
-                    mat_inv[i][j] /= mat[i][i].clone();
-                }
-            }
-            if (p[dim] - dim) % 2 != 0 {
-                mat_inv.matrix.reverse();
-            }
-            Ok(Some(mat_inv))
-        } else {
-            Ok(None)
+        // This uses the Gauss-Jordan Elimination method
+        if !self.is_square() {
+            return Err(DimensionError::NoSquare);
         }
+        let dim = self.rows();
+        let mut mat = Matrix::zero(dim, dim*2)?;
+
+        for i in 0..dim {
+            mat[i][..dim].clone_from_slice(&self[i][..dim]);
+            mat[i][i+dim] = T::one();
+        }
+        mat = mat.rref();
+        for i in 0..dim {
+            for j in 0..dim {
+                if mat[i][j] != if i == j { T::one() } else { T::zero() } {
+                    return Ok(None);
+                }
+            }
+        }
+        
+        let mut inv = Matrix::zero(dim, dim)?;
+        for i in 0..dim {
+            inv[i][..dim].clone_from_slice(&mat[i][dim..2*dim])
+        }
+        Ok(Some(inv))
+    }
+}
+
+impl<T> IntoIterator for Matrix<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.matrix.into_iter()
     }
 }

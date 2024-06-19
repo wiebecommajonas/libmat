@@ -309,6 +309,71 @@ where
         }
         Matrix::<T>::from_vec(self.cols(), self.rows(), vec).unwrap()
     }
+
+    /// Find Reduced Row Echelon Form.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use libmat::mat::Matrix;
+    /// # use libmat::matrix;
+    /// let mat_a = matrix!{1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12};
+    /// // 1  2  3  4
+    /// // 5  6  7  8
+    /// // 9 10 11 12
+    /// let mat_b = matrix!{1, 0, -1, -2; 0, 1, 2, 3; 0, 0, 0, 0};
+    /// // 1  0 -1 -2
+    /// // 0  1  2  3
+    /// // 0  0  0  0
+    /// assert_eq!(mat_a.rref(), mat_b);
+    pub fn rref(&self) -> Matrix<T>
+    where
+        T: sign::Signed + std::ops::DivAssign + std::ops::SubAssign + Clone + Zero + One,
+    {
+        let mut mat = self.clone();
+        let mut col = 0;
+        let mut row = 0;
+        while row < mat.rows() && col < mat.cols() {
+            if mat[row][col].is_zero() {
+                // find non-zero
+                for r in row..mat.rows() {
+                    if !mat[r][r].is_zero() {
+                        // swap r -> row
+                        for (i, item) in mat[row].to_vec().iter().cloned().enumerate() {
+                            mat[row][i] = mat[r][i].clone();
+                            mat[r][i] = item;
+                        }
+                        break;
+                    }
+                }
+            }
+            if mat[row][col].is_zero() {
+                col += 1;
+                continue;
+            }
+            // ensure first item is 1
+            if !mat[row][col].is_one() {
+                let val = mat[row][col].clone();
+                for c in col..mat.cols() {
+                    mat[row][c] /= val.clone();
+                }
+            }
+            // reduce all other rows
+            for r in 0..mat.rows() {
+                if mat[r][col].is_zero() || r == row {
+                    continue;
+                }
+                let val = mat[r][col].clone();
+                for c in col..mat.cols() {
+                    let x = mat[row][c].clone();
+                    mat[r][c] -= val.clone() * x;
+                }
+            }
+            row += 1;
+            col += 1;
+        }
+        mat
+    }
 }
 
 impl<T> From<Vector<T>> for Matrix<T>
